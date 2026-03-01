@@ -59,7 +59,8 @@
               "components/comment-components",
               "components/story-components",
               "components/navbar-components",
-              "components/user-components"
+              "components/user-components",
+              "components/common-utilities"
             ]
           }
         ]

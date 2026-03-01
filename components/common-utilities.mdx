@@ -1,0 +1,460 @@
+---
+title: Common Utilities
+description: Shared utilities and helper functions used across Orange Juice components
+---
+
+## Overview
+
+Orange Juice includes a comprehensive set of utilities and services that power the extension's features.
+
+## Storage Services
+
+### Local Storage
+
+**Location:** `src/utils/local-storage.ts`
+
+Wrapper around `@wxt-dev/storage` for persistent data storage.
+
+```typescript
+import { lStorage } from '@/utils/local-storage';
+
+// Get item
+const value = await lStorage.getItem<string>('key');
+
+// Set item
+await lStorage.setItem('key', 'value');
+
+// Clear all storage
+await lStorage.clear();
+```
+
+### Activity Trail
+
+**Location:** `src/utils/activity-trail.ts`
+
+Manages user activities (favorites, flags, votes, hidden items) with indexed storage for fast lookups.
+
+<ParamField path="ActivityTrail" type="class">
+  Tracks and indexes all user activities for quick lookups
+</ParamField>
+
+```typescript
+import { newActivityTrail } from '@/utils/activity-trail';
+
+const activityTrail = await newActivityTrail();
+
+// Check if item is favorited
+const isFavorited = activityTrail.get({
+  id: 'item123',
+  type: ActivityId.Favorites
+});
+
+// Add activity
+activityTrail.set({
+  id: 'item123',
+  type: ActivityId.Favorites,
+  exp: Date.now() + 86400000
+});
+```
+
+### Activity Fetcher
+
+**Location:** `src/utils/activity-trail.ts`
+
+Fetches all user activities from Hacker News and syncs to local storage.
+
+```typescript
+import { newActivityFetcher } from '@/utils/activity-trail';
+
+const fetcher = newActivityFetcher('username');
+await fetcher.start(); // Syncs all activities
+```
+
+---
+
+## DOM Utilities
+
+**Location:** `src/utils/dom.ts`
+
+### getUsername
+
+Extracts and caches the current username from the page.
+
+```typescript
+import { getUsername } from '@/utils/dom';
+
+const username = getUsername(document);
+```
+
+### getAuthToken
+
+Fetches authentication token for activities (favorite, flag, vote).
+
+```typescript
+import { getAuthToken } from '@/utils/dom';
+
+const token = await getAuthToken('comment123', 'favorite');
+```
+
+### getAllComments
+
+Retrieves all comment elements from the page.
+
+```typescript
+import { getAllComments } from '@/utils/dom';
+
+const comments = getAllComments(document);
+```
+
+### getPageDom
+
+Fetches and parses a remote HN page.
+
+```typescript
+import { getPageDom } from '@/utils/dom';
+
+const remoteDom = await getPageDom('https://news.ycombinator.com/item?id=123');
+```
+
+---
+
+## Dark Mode
+
+**Location:** `src/utils/dark-mode.ts`
+
+Manages dark mode preference and applies theme changes.
+
+### Functions
+
+```typescript
+import {
+  getDarkModePreference,
+  setDarkModePreference,
+  toggleDarkModePreference,
+  enableDarkMode
+} from '@/utils/dark-mode';
+
+// Get current preference
+const mode = await getDarkModePreference(); // 'dark' | 'light'
+
+// Set preference
+await setDarkModePreference('dark');
+
+// Toggle
+await toggleDarkModePreference();
+
+// Initialize dark mode
+enableDarkMode(document);
+```
+
+### CSS Class
+
+Dark mode adds `oj-dark-mode` class to the `<html>` element.
+
+---
+
+## Indexed List
+
+**Location:** `src/utils/indexed-list.ts`
+
+Efficient list navigation with O(1) key-based lookups.
+
+```typescript
+import { IndexedList } from '@/utils/indexed-list';
+
+const list = new IndexedList(items, (item) => item.id);
+
+// O(1) lookup
+const item = list.get('key123');
+
+// Navigate
+const next = list.getNext(currentItem);
+const prev = list.getPrevious(currentItem);
+
+// Boundaries
+const first = list.first();
+const last = list.last();
+```
+
+---
+
+## Mermaid Utilities
+
+**Location:** `src/utils/mermaid.ts`
+
+Utilities for rendering Mermaid diagrams with theme support.
+
+### Functions
+
+```typescript
+import {
+  extractMermaidFromText,
+  createMermaidSvgNodeFromMarkup,
+  renderMermaidsInPreCodeElements,
+  rerenderMermaidBlocksInElement
+} from '@/utils/mermaid';
+
+// Extract mermaid markup from text
+const mermaidCode = extractMermaidFromText(commentText);
+
+// Render to SVG
+const svgNode = await createMermaidSvgNodeFromMarkup(mermaidCode, document);
+
+// Render all mermaid blocks in element
+await renderMermaidsInPreCodeElements(element);
+
+// Re-render on theme change
+await rerenderMermaidBlocksInElement(container, document);
+```
+
+---
+
+## Reference Link Parser
+
+**Location:** `src/utils/parse-reference-links.ts`
+
+Extracts numbered reference links from comments.
+
+```typescript
+import { parseReferenceLinks } from '@/utils/parse-reference-links';
+
+const links = parseReferenceLinks(commentElement);
+// Returns: [{ href: 'https://...', index: 1 }, ...]
+```
+
+Matches patterns like:
+- `[1]`, `[2]`, etc.
+- `1:`, `2:`, etc.
+- `1.`, `2.`, etc.
+
+---
+
+## Backoff Utility
+
+**Location:** `src/utils/backoff.ts`
+
+Retries failed operations with exponential backoff.
+
+```typescript
+import { withBackoff } from '@/utils/backoff';
+
+const result = await withBackoff(
+  async () => {
+    return await fetchData();
+  },
+  {
+    attempts: 3,
+    initialDelay: 1000
+  }
+);
+```
+
+---
+
+## HN API
+
+**Location:** `src/utils/api.ts`
+
+Proxy API for accessing Hacker News data.
+
+### Base URL
+
+```
+https://squeeze.oj-hn.com
+```
+
+### Functions
+
+```typescript
+import { apiModule } from '@/utils/api';
+
+// Get user info
+const user = await apiModule.getUserInfo('pg');
+// Returns: { id, created, karma, submitted, about }
+
+// Get item info
+const item = await apiModule.getItemInfo('123');
+
+// Proxy image URL
+const imageUrl = apiModule.getImageURL('https://example.com/image.png');
+```
+
+---
+
+## Modal Component
+
+**Location:** `src/components/common/modal.ts`
+
+Displays modal dialogs with overlay.
+
+```typescript
+import { showModal } from '@/components/common/modal';
+
+showModal({
+  content: element,
+  ctx,
+  doc: document,
+  onClose: () => console.log('Modal closed'),
+  variant: 'default' // or 'shortcuts'
+});
+```
+
+<Note>
+  Modal closes on Escape key or clicking outside the modal content.
+</Note>
+
+---
+
+## Dropdown Component
+
+**Location:** `src/components/common/dropdown.ts`
+
+Creates interactive dropdown menus.
+
+```typescript
+import { createDropdown, createDropdownStyle } from '@/components/common/dropdown';
+
+// Add styles
+const style = document.createElement('style');
+style.innerHTML = createDropdownStyle('my-dropdown');
+document.head.appendChild(style);
+
+// Create dropdown
+createDropdown({
+  triggerElement: button,
+  dropdownElement: menu,
+  doc: document,
+  ctx,
+  onToggle: (isOpen) => console.log('Dropdown', isOpen)
+});
+```
+
+---
+
+## Keyboard Shortcuts Help
+
+**Location:** `src/components/common/keyboard-shortcuts-help.tsx`
+
+React component displaying all keyboard shortcuts.
+
+```typescript
+import { getKeyboardShortcutsHelp } from '@/components/common/keyboard-shortcuts-help';
+
+const helpElement = getKeyboardShortcutsHelp(document);
+document.body.appendChild(helpElement);
+```
+
+---
+
+## Auto-Resize Textarea
+
+**Location:** `src/components/common/resize-textarea.ts`
+
+Automatically resizes textareas as content grows.
+
+```typescript
+import { resizeTextarea } from '@/components/common/resize-textarea';
+
+resizeTextarea(ctx, document);
+// Now all textareas auto-resize
+```
+
+Uses the `fit-textarea` library for smooth resizing.
+
+---
+
+## Open in New Tab
+
+**Location:** `src/components/common/open-in-new-tab.ts`
+
+Opens story links in new tabs.
+
+```typescript
+import { openInNewTab } from '@/components/common/open-in-new-tab';
+
+openInNewTab(ctx, document);
+// Story title links now open in new tabs
+```
+
+---
+
+## Background Services
+
+### Service Manager
+
+**Location:** `src/services/manager.ts`
+
+Manages communication between content scripts and background services.
+
+```typescript
+import { createClientServices } from '@/services/manager';
+
+const services = await createClientServices();
+
+// Use services
+const visits = await services.ReadStories.getVisits(stories);
+```
+
+### Available Services
+
+<CardGroup cols={2}>
+  <Card title="Highlight Service" icon="highlighter">
+    Manages unread comment tracking
+  </Card>
+  <Card title="Read Stories Service" icon="book-open">
+    Queries browser history for visited stories
+  </Card>
+  <Card title="Fetch Remote Service" icon="cloud-arrow-down">
+    Fetches and caches remote pages
+  </Card>
+  <Card title="Browser Tab Service" icon="window">
+    Opens new tabs next to active tab
+  </Card>
+</CardGroup>
+
+---
+
+## Storage Keys
+
+### Local Storage Keys
+
+| Key | Description |
+|-----|-------------|
+| `oj_dark_mode` | Dark mode preference |
+| `oj_username` | Cached username |
+| `oj_activity_trail` | User activities (favorites, flags, etc.) |
+| `oj_read_comments` | Read comment tracking |
+| `oj_hide_read_stories` | Hide checkbox state |
+| `oj_active_comment_id` | Active comment per item |
+| `oj_comment_nav_state` | Comment navigation state |
+| `oj_active_story_id2` | Active story per page |
+| `oj_page_nav_state` | Story navigation state |
+
+---
+
+## CSS Classes
+
+### Comment Classes
+
+| Class | Description |
+|-------|-------------|
+| `oj_focused_comment` | Focused comment styling |
+| `oj_dead_comment` | Dead comment styling |
+| `oj_new_comment_indent` | New comment highlight |
+| `oj_clickable_indent` | Clickable indent cell |
+| `oj_op` | Original poster highlight |
+
+### Story Classes
+
+| Class | Description |
+|-------|-------------|
+| `oj_focused_story` | Focused story styling |
+| `oj_story_hidden` | Hidden story |
+
+### Global Classes
+
+| Class | Description |
+|-------|-------------|
+| `oj-dark-mode` | Dark mode root class |
+| `oj_favorite_link` | Favorite button |
+| `oj_flag_link` | Flag button |
