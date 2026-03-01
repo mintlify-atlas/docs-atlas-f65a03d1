@@ -1,0 +1,76 @@
+{
+  "projectType": "frontend",
+  "projectName": "Orange Juice",
+  "projectDescription": "Browser extension that enhances the Hacker News experience with quality-of-life improvements",
+  "theme": "almond",
+  "primaryColor": "#ff6600",
+  "lightColor": "#ff8533",
+  "darkColor": "#cc5200",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": ["introduction", "installation", "quickstart"]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/overview",
+              "features/comments",
+              "features/stories",
+              "features/navigation",
+              "features/user-profiles",
+              "features/submission",
+              "features/dark-mode"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "development/setup",
+              "development/architecture",
+              "development/testing",
+              "development/contributing"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Components",
+        "groups": [
+          {
+            "group": "Component Reference",
+            "pages": [
+              "components/comment-components",
+              "components/story-components",
+              "components/navbar-components",
+              "components/user-components"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Inline reply with quote selection",
+    "Mermaid diagram rendering in comments",
+    "Unread comment highlighting",
+    "Hide read stories",
+    "Keyboard navigation",
+    "User info on hover",
+    "Dark mode",
+    "Enhanced comment UX with collapsible threads",
+    "Past page date picker",
+    "Enhanced submission UX with character count"
+  ],
+  "publicApiSurface": [
+    "Content script components (comment, story, navbar, user)",
+    "Storage services (highlight-unread-comments, read-stories, browser-tab)",
+    "Background service manager",
+    "React components (InlineReply, UserHoverCard, DatePicker, KeyboardShortcuts)",
+    "Utility functions (DOM manipulation, HN API wrappers)"
+  ]
+}
