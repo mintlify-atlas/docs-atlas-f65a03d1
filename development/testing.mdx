@@ -1,0 +1,389 @@
+---
+title: Testing Guide
+description: Write and run tests for Orange Juice
+---
+
+## Testing Philosophy
+
+Testing is crucial for maintaining code quality and preventing regressions as the extension evolves. All code contributions must come with tests.
+
+<Note>
+  AI makes writing tests easier now, so take advantage of it. There's no excuse for not writing tests.
+</Note>
+
+## Test Framework
+
+Orange Juice uses **Vitest** for unit testing with the following configuration:
+
+- **Environment**: happy-dom (simulates browser DOM)
+- **Global APIs**: Available without imports
+- **Auto-mocking**: `restoreMocks` and `mockReset` enabled
+- **LocalStorage**: Mocked via `vitest-localstorage-mock`
+
+### Configuration
+
+The Vitest configuration is in `vitest.config.ts`:
+
+```typescript
+import { defineConfig } from 'vitest/config';
+import { WxtVitest } from 'wxt/testing';
+
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'happy-dom',
+    restoreMocks: true,
+    mockReset: true,
+    setupFiles: ['vitest-localstorage-mock'],
+    exclude: ['**/node_modules/**', '**/e2e/**'],
+  },
+  plugins: [WxtVitest()],
+});
+```
+
+## Running Tests
+
+### Run All Tests
+
+```bash
+bun run test
+```
+
+Runs the entire test suite with Vitest.
+
+### Watch Mode
+
+```bash
+bun run test -- --watch
+```
+
+Runs tests in watch mode, automatically re-running when files change.
+
+### Run Specific Tests
+
+```bash
+bun run test path/to/file.test.ts
+```
+
+Runs tests in a specific file.
+
+### Coverage
+
+```bash
+bun run test -- --coverage
+```
+
+Generates test coverage reports.
+
+## Writing Tests
+
+### Test Structure
+
+All tests must follow this structure:
+
+1. **Wrap in top-level describe()**: Groups related tests
+2. **Use table-driven tests**: Go-style test tables for multiple cases
+3. **Check edge cases**: Test boundary conditions
+4. **Test actual behavior**: Write failing tests for broken code, then fix it
+
+### Example Test
+
+```typescript
+import { describe, expect, test } from 'vitest';
+import { backticksToCode } from './backticks-to-code.ts';
+
+describe('backticksToCode', () => {
+  const testCases = [
+    {
+      name: 'converts single backticks to code',
+      input: 'Use `console.log()` to debug',
+      expected: 'Use <code>console.log()</code> to debug',
+    },
+    {
+      name: 'handles multiple backtick pairs',
+      input: 'Compare `foo` and `bar`',
+      expected: 'Compare <code>foo</code> and <code>bar</code>',
+    },
+    {
+      name: 'handles empty backticks',
+      input: 'Empty `` backticks',
+      expected: 'Empty <code></code> backticks',
+    },
+    {
+      name: 'handles text without backticks',
+      input: 'No code here',
+      expected: 'No code here',
+    },
+  ];
+
+  for (const { name, input, expected } of testCases) {
+    test(name, () => {
+      const element = document.createElement('div');
+      element.textContent = input;
+      
+      backticksToCode(element);
+      
+      expect(element.innerHTML).toBe(expected);
+    });
+  }
+});
+```
+
+### Table-Driven Tests
+
+Use arrays of test cases for better organization:
+
+```typescript
+describe('urlMatchesPattern', () => {
+  const testCases = [
+    { url: 'https://example.com', pattern: 'https://*', expected: true },
+    { url: 'https://example.com/path', pattern: 'https://*/path', expected: true },
+    { url: 'https://example.com/other', pattern: 'https://*/path', expected: false },
+  ];
+
+  for (const { url, pattern, expected } of testCases) {
+    test(`${url} ${expected ? 'matches' : 'does not match'} ${pattern}`, () => {
+      expect(urlMatchesPattern(url, pattern)).toBe(expected);
+    });
+  }
+});
+```
+
+## Testing DOM Manipulation
+
+### Creating Test DOM
+
+Use happy-dom's document object:
+
+```typescript
+import { describe, test, expect, beforeEach } from 'vitest';
+
+describe('Comment highlighting', () => {
+  let doc: Document;
+
+  beforeEach(() => {
+    doc = document.implementation.createHTMLDocument();
+  });
+
+  test('highlights new comments', () => {
+    doc.body.innerHTML = `
+      <div class="comment" id="comment-1">
+        <div class="comtext">Test comment</div>
+      </div>
+    `;
+
+    const comment = doc.querySelector('#comment-1') as HTMLElement;
+    expect(comment).not.toBeNull();
+    
+    // Test your function
+    highlightComment(comment);
+    
+    expect(comment.style.borderLeft).toBe('3px solid orange');
+  });
+});
+```
+
+### Mocking Browser APIs
+
+Use Vitest's mocking capabilities:
+
+```typescript
+import { vi } from 'vitest';
+
+test('fetches user data', async () => {
+  global.fetch = vi.fn(() =>
+    Promise.resolve({
+      json: () => Promise.resolve({ username: 'test' }),
+    })
+  ) as any;
+
+  const user = await fetchUser('test');
+  
+  expect(user.username).toBe('test');
+  expect(fetch).toHaveBeenCalledWith('https://api.example.com/user/test');
+});
+```
+
+## Testing React Components
+
+### Using Testing Library
+
+```typescript
+import { render, screen, waitFor } from '@testing-library/dom';
+import { createRoot } from 'react-dom/client';
+import { UserInfo } from './user-info.tsx';
+
+test('renders user information', async () => {
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  
+  const root = createRoot(container);
+  root.render(<UserInfo username="test" />);
+  
+  await waitFor(() => {
+    expect(screen.getByText('test')).toBeInTheDocument();
+  });
+  
+  root.unmount();
+});
+```
+
+<Note>
+  For React createRoot rendering, keep production code async and wait in tests for the render to flush.
+</Note>
+
+## Testing Async Code
+
+Always use async/await for async tests:
+
+```typescript
+test('loads data asynchronously', async () => {
+  const data = await loadData();
+  
+  expect(data).toBeDefined();
+  expect(data.length).toBeGreaterThan(0);
+});
+```
+
+### Handling Errors
+
+```typescript
+test('throws error on invalid input', async () => {
+  await expect(processInvalidData()).rejects.toThrow('Invalid data');
+});
+```
+
+## Testing Services
+
+Services can be tested in isolation:
+
+```typescript
+import { describe, test, expect } from 'vitest';
+import { ReadStoriesService } from './read-stories-service.ts';
+
+describe('ReadStoriesService', () => {
+  test('marks story as read', async () => {
+    const service = new ReadStoriesService();
+    
+    await service.markAsRead('story-123');
+    const isRead = await service.isRead('story-123');
+    
+    expect(isRead).toBe(true);
+  });
+});
+```
+
+## End-to-End Testing
+
+### Playwright Setup
+
+Orange Juice includes Playwright for E2E testing:
+
+```bash
+bunx playwright install
+```
+
+<Warning>
+  E2E testing is not fully implemented yet. This is an area where contributions are welcome.
+</Warning>
+
+### E2E Test Example
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('inline reply works', async ({ page }) => {
+  await page.goto('https://news.ycombinator.com/item?id=12345');
+  
+  await page.click('.reply-link');
+  await page.fill('textarea', 'Test reply');
+  
+  expect(await page.locator('textarea').inputValue()).toBe('Test reply');
+});
+```
+
+## Testing Best Practices
+
+### Do's
+
+- **Write tests for all new code**: Every PR must include tests
+- **Test edge cases**: Empty inputs, null values, boundary conditions
+- **Use descriptive test names**: `test('converts backticks to code tags')`
+- **Keep tests focused**: One concept per test
+- **Mock external dependencies**: APIs, storage, browser APIs
+- **Use table-driven tests**: For multiple similar test cases
+- **Test actual behavior**: Not implementation details
+
+### Don'ts
+
+- **Don't write passing tests for broken code**: Fix the code first
+- **Don't skip tests**: Every feature needs tests
+- **Don't test implementation details**: Test public interfaces
+- **Don't use real API calls**: Mock them instead
+- **Don't forget async/await**: Always handle promises properly
+- **Don't define components in tests**: Import from source
+
+## Test Coverage Goals
+
+While there's no strict coverage requirement, aim for:
+
+- **High coverage** of business logic
+- **All edge cases** covered
+- **Critical paths** thoroughly tested
+- **Error handling** validated
+
+## Debugging Tests
+
+### Run with Debug Output
+
+```bash
+bun run test -- --reporter=verbose
+```
+
+### Debug Single Test
+
+```bash
+bun run test -- --inspect-brk path/to/file.test.ts
+```
+
+### Using console.log
+
+```typescript
+test('debugging example', () => {
+  const result = someFunction();
+  console.log('Result:', result);
+  expect(result).toBeDefined();
+});
+```
+
+## Continuous Integration
+
+Tests run automatically in CI:
+
+```bash
+bun run ci
+```
+
+This command runs:
+1. Code checks (`bun run check`)
+2. Tests (`bun run test`)
+3. Builds (`bun run build`)
+4. Creates distribution packages
+
+<Note>
+  All CI checks must pass before a PR can be merged.
+</Note>
+
+## Logged In Testing
+
+Most features require being logged in to Hacker News. Testing while logged out is not a current focus.
+
+<Warning>
+  Make sure to test features while logged in to Hacker News to properly validate functionality.
+</Warning>
+
+## Next Steps
+
+- Review [Contributing Guidelines](/development/contributing)
+- Explore the [Project Architecture](/development/architecture)
+- Check out the [Setup Guide](/development/setup)

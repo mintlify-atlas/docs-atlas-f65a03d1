@@ -1,0 +1,226 @@
+---
+title: Installation
+description: Install Orange Juice from the Chrome Web Store, Firefox Add-ons, or GitHub releases
+---
+
+# Installation
+
+Orange Juice is available for Chrome and Firefox. You can install it from official web stores or directly from GitHub releases for the latest updates.
+
+<Note>
+  For the latest features and fixes, install from GitHub releases. The Chrome Web Store version updates slowly, while GitHub releases receive frequent updates.
+</Note>
+
+## Install from Chrome Web Store
+
+The easiest way to install Orange Juice on Chrome or Chromium-based browsers.
+
+<Steps>
+  <Step title="Visit the Chrome Web Store">
+    Navigate to the [Orange Juice extension page](https://chromewebstore.google.com/detail/orange-juice/jojpnpkbdjfpjjgjhdccgpbifipacaii) on the Chrome Web Store.
+  </Step>
+  
+  <Step title="Add to Chrome">
+    Click the "Add to Chrome" button in the top right corner.
+  </Step>
+  
+  <Step title="Confirm installation">
+    A popup will appear asking you to confirm the permissions. Click "Add extension" to proceed.
+  </Step>
+  
+  <Step title="Start using Orange Juice">
+    Once installed, navigate to [Hacker News](https://news.ycombinator.com/) and start experiencing the enhancements.
+  </Step>
+</Steps>
+
+<Warning>
+  The Chrome Web Store version updates slowly due to review processes. For the latest features, consider installing from GitHub releases instead.
+</Warning>
+
+## Install from Firefox Add-ons
+
+Firefox Add-ons support is coming soon.
+
+<Info>
+  Firefox users can install from GitHub releases using the temporary add-on method described below.
+</Info>
+
+## Install from GitHub releases
+
+Get the latest version with the newest features and bug fixes by installing directly from GitHub.
+
+<Tabs>
+  <Tab title="Chrome">
+    <Steps>
+      <Step title="Download the latest release">
+        Visit the [releases page](https://github.com/OrangeJuiceExtension/OrangeJuice/releases/latest) and download the `.zip` file for Chrome.
+        
+        Look for a file named similar to `orangejuice-X.X.X-chrome.zip`.
+      </Step>
+      
+      <Step title="Extract the zip file">
+        Double-click the downloaded `.zip` file to extract it into a folder. Remember the location of this folder.
+      </Step>
+      
+      <Step title="Open Chrome extensions page">
+        In Chrome, navigate to `chrome://extensions/` by typing it into the address bar.
+      </Step>
+      
+      <Step title="Enable Developer mode">
+        Toggle the "Developer mode" switch in the top right corner of the extensions page.
+      </Step>
+      
+      <Step title="Load the extension">
+        Click the "Load unpacked" button that appears after enabling Developer mode.
+        
+        Navigate to and select the extracted folder from Step 2.
+      </Step>
+      
+      <Step title="Verify installation">
+        The Orange Juice extension should now appear in your extensions list and be active on Hacker News.
+      </Step>
+    </Steps>
+  </Tab>
+  
+  <Tab title="Firefox">
+    <Steps>
+      <Step title="Download the latest release">
+        Visit the [releases page](https://github.com/OrangeJuiceExtension/OrangeJuice/releases/latest) and download the `.zip` file for Firefox.
+        
+        Look for a file named similar to `orangejuice-X.X.X-firefox.zip`.
+      </Step>
+      
+      <Step title="Extract the zip file">
+        Double-click the downloaded `.zip` file to extract it into a folder. Remember the location of this folder.
+      </Step>
+      
+      <Step title="Open Firefox debugging page">
+        In Firefox, navigate to `about:debugging#/runtime/this-firefox` by typing it into the address bar.
+      </Step>
+      
+      <Step title="Load temporary add-on">
+        Click the "Load Temporary Add-on..." button.
+      </Step>
+      
+      <Step title="Select manifest file">
+        Navigate to the extracted folder from Step 2 and select the `manifest.json` file.
+      </Step>
+      
+      <Step title="Verify installation">
+        The Orange Juice extension should now appear in your add-ons list and be active on Hacker News.
+      </Step>
+    </Steps>
+    
+    <Warning>
+      Temporary extensions in Firefox are removed when you restart the browser. You'll need to reload the extension each time you restart Firefox until it's available on Firefox Add-ons.
+    </Warning>
+  </Tab>
+</Tabs>
+
+## Verify installation
+
+After installing Orange Juice, verify it's working correctly:
+
+<Steps>
+  <Step title="Visit Hacker News">
+    Navigate to [https://news.ycombinator.com/](https://news.ycombinator.com/)
+  </Step>
+  
+  <Step title="Check for visual changes">
+    You should notice subtle enhancements like:
+    - A dark mode toggle in the top navigation bar
+    - Improved comment indentation and visual guides
+    - Enhanced code formatting in comments
+  </Step>
+  
+  <Step title="Test keyboard shortcuts">
+    Press `?` on any HN page to see the keyboard shortcuts help dialog. This confirms Orange Juice is active.
+  </Step>
+</Steps>
+
+## Permissions explained
+
+Orange Juice requires the following permissions to function:
+
+<AccordionGroup>
+  <Accordion title="history - Access browsing history">
+    Used by the "Hide read stories" feature to determine which links you've already visited. This allows Orange Juice to hide stories you've already read when you enable that option.
+  </Accordion>
+  
+  <Accordion title="storage - Store data locally">
+    Used to save your preferences, track read comments for highlighting unread ones, and store favorited items. All data is stored locally in your browser.
+  </Accordion>
+  
+  <Accordion title="tabs - Access tab information">
+    Used to enhance navigation features and manage extension behavior across different HN pages.
+  </Accordion>
+  
+  <Accordion title="squeeze.oj-hn.com - Host access">
+    Used for optional social features and future enhancements. This is the Orange Juice backend service.
+  </Accordion>
+</AccordionGroup>
+
+<Info>
+  Orange Juice is fully open source. You can review exactly what the extension does with these permissions in the [GitHub repository](https://github.com/OrangeJuiceExtension/OrangeJuice).
+</Info>
+
+## Updating the extension
+
+<Tabs>
+  <Tab title="Chrome Web Store">
+    Chrome automatically updates extensions from the Web Store. You don't need to do anything—updates will be applied in the background.
+  </Tab>
+  
+  <Tab title="GitHub Releases">
+    If you installed from GitHub releases, you'll need to manually update:
+    
+    1. Download the latest release from the [releases page](https://github.com/OrangeJuiceExtension/OrangeJuice/releases/latest)
+    2. Extract the new version
+    3. Go to `chrome://extensions/` (Chrome) or `about:debugging` (Firefox)
+    4. Remove the old version
+    5. Load the new version following the installation steps above
+  </Tab>
+</Tabs>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Extension not working on Hacker News">
+    1. Refresh the Hacker News page after installation
+    2. Check that the extension is enabled in your browser's extension settings
+    3. Try disabling and re-enabling the extension
+    4. If using Developer mode, ensure the extension folder hasn't been moved or deleted
+  </Accordion>
+  
+  <Accordion title="Features not appearing">
+    Some features only appear on specific HN pages:
+    - Inline reply: Only on comment threads
+    - Hide read stories: Only on story listing pages (front, newest, etc.)
+    - Date picker: Only on the `/front` page
+    
+    Make sure you're on the appropriate page for the feature you're looking for.
+  </Accordion>
+  
+  <Accordion title="Conflicts with other extensions">
+    If you have other Hacker News extensions installed (like HNES or Refined Hacker News), they may conflict with Orange Juice. Try disabling other HN extensions to see if that resolves the issue.
+  </Accordion>
+  
+  <Accordion title="Firefox temporary add-on disappeared">
+    Temporary add-ons in Firefox are removed when you restart the browser. This is a Firefox limitation. You'll need to reload the extension using the installation steps each time you restart Firefox.
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+  If you encounter issues not covered here, please [open an issue on GitHub](https://github.com/OrangeJuiceExtension/OrangeJuice/issues) with details about your browser version and the problem you're experiencing.
+</Tip>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Learn how to use Orange Juice features
+  </Card>
+  <Card title="GitHub" icon="github" href="https://github.com/OrangeJuiceExtension/OrangeJuice">
+    Explore the source code
+  </Card>
+</CardGroup>

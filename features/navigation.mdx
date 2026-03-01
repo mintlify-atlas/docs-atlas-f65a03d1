@@ -1,0 +1,207 @@
+---
+title: Navigation Features
+description: Powerful keyboard shortcuts and navigation enhancements for Hacker News
+---
+
+Orange Juice adds comprehensive keyboard navigation and additional navigation features to make browsing Hacker News more efficient.
+
+## Keyboard Shortcuts
+
+Press `?` on any page to open the keyboard shortcuts help dialog.
+
+### Comment Shortcuts
+
+<AccordionGroup>
+  <Accordion title="Movement and Navigation">
+    | Key | Description |
+    |-----|-------------|
+    | `j` / `J` | Move down / expands collapsed |
+    | `k` / `K` | Move up / expands collapsed |
+    | `n` | Go to next sibling comment |
+    | `p` | Go to previous sibling comment |
+    | `0-9` | Open reference link by number |
+    | `t` | Scroll to top of page |
+    | `b` | Go back (if paginated) |
+    | `esc` | Unfocus comment or close reply box |
+  </Accordion>
+  
+  <Accordion title="Comment Actions">
+    | Key | Description |
+    |-----|-------------|
+    | `c` | Collapse/expand comment thread |
+    | `r` | Reply to selected comment |
+    | `u` | Upvote selected comment |
+    | `d` | Downvote selected comment |
+    | `f` | Favorite selected comment |
+    | `X` | Flag selected comment |
+  </Accordion>
+</AccordionGroup>
+
+### Story Shortcuts
+
+<Tabs>
+  <Tab title="Navigation">
+    | Key | Description |
+    |-----|-------------|
+    | `↑` / `↓` | Move up / down |
+    | `j` / `k` | Move down / up |
+    | `1-9, 0` | Open story at position 1-10 |
+    | `m` | Click more link |
+    | `b` | Go back (if paginated) |
+    | `esc` | Unfocus story |
+  </Tab>
+  
+  <Tab title="Opening Stories">
+    | Key | Description |
+    |-----|-------------|
+    | `→` | Open story url (new tab) |
+    | `⇧ + →` | Open story url |
+    | `←` | Open story comments (new tab) |
+    | `⇧ + ←` | Open story comments |
+    | `Enter` | Open selected story in new tab |
+    | `O` | Open story and comments in new tabs |
+  </Tab>
+  
+  <Tab title="Actions">
+    | Key | Description |
+    |-----|-------------|
+    | `u` | Upvote selected story |
+    | `f` | Favorite selected story |
+    | `X` | Flag selected story |
+    | `r` | Reply to story (go to comments) |
+    | `h` | Toggle hide read stories checkbox |
+    | `H` | Hide read stories |
+  </Tab>
+</Tabs>
+
+### Global Navigation Shortcuts
+
+<Note>
+  Global navigation shortcuts require the `alt` or `⌥` key modifier.
+</Note>
+
+| Key | Description |
+|-----|-------------|
+| `H` | Home |
+| `S` | Submit |
+| `O` | Show |
+| `A` | Ask |
+| `N` | New |
+| `P` | Profile |
+| `T` | Threads |
+| `?` | Show help dialog |
+| `esc` | Hide help dialog |
+
+### Help Dialog
+
+The keyboard shortcuts help dialog (`src/components/common/keyboard-shortcuts-help.tsx`) displays:
+
+- Orange Juice branding with logo
+- Links to website, GitHub, and email
+- All available shortcuts organized by category
+- Responsive layout with proper styling for both light and dark modes
+
+## Hidden Page Links
+
+There are many HN URLs not exposed in the regular navigation. Orange Juice adds a "more" dropdown to the navbar showing these hidden pages.
+
+### Available Links
+
+<CardGroup cols={2}>
+  <Card title="Community Pages">
+    - **leaders** - Users with most karma
+    - **best** - Highest-voted recent stories
+    - **active** - Most active current discussions
+    - **bestcomments** - Highest-voted recent comments
+    - **highlights** - Highlighted comments
+  </Card>
+  
+  <Card title="Discovery Pages">
+    - **pool** - Second chance pool
+    - **shownew** - Show HN new stories
+    - **asknew** - Ask HN new stories
+    - **launches** - Show Launch HN stories
+    - **classic** - Classic stories
+  </Card>
+  
+  <Card title="Special Pages">
+    - **invited** - Invited stories
+    - **noobstories** - Submissions from new accounts
+    - **noobcomments** - Comments from new accounts
+    - **topcolors** - List of custom topcolors
+    - **whoishiring** - Who's hiring posts
+  </Card>
+  
+  <Card title="Utilities">
+    - **newpoll** - Create a new poll
+  </Card>
+</CardGroup>
+
+### Implementation
+
+The dropdown is implemented in `src/components/navbar/more-links-dropdown.ts`:
+
+```typescript
+const linkDetails = [
+  { title: 'leaders', description: 'Users with most karma' },
+  { title: 'best', description: 'Highest-voted recent stories' },
+  // ... more links
+];
+```
+
+<Tip>
+  The current page is automatically excluded from the dropdown menu.
+</Tip>
+
+## Past Page Date Picker
+
+Navigate historical front pages with an interactive date picker on the `/front` page.
+
+### Features
+
+- **Date range**: Select any date from 2007 to yesterday
+- **Smart defaults**: Defaults to yesterday's front page
+- **Dynamic validation**: Automatically prevents selecting future dates
+- **Adaptive UI**: Available months and days adjust based on today's date
+
+### How It Works
+
+<Steps>
+  <Step title="Year selection">
+    Choose a year from 2007 to the current year. The dropdown is populated in descending order.
+  </Step>
+  
+  <Step title="Month selection">
+    Available months adjust if you select the current year (can't select future months).
+  </Step>
+  
+  <Step title="Day selection">
+    Available days adjust if you select the current year and month (can't select future dates or tomorrow).
+  </Step>
+  
+  <Step title="Navigation">
+    Changing any dropdown immediately navigates to `/front?day=YYYY-M-D` with the selected date.
+  </Step>
+</Steps>
+
+### Implementation Details
+
+```typescript
+// src/components/past/index.ts:48-49
+const today = new Date();
+today.setDate(today.getDate() - 1); // Default to the day before
+```
+
+The date picker uses `updateMonthAndDayOptions()` to dynamically update available options:
+
+```typescript
+const isCurrentYear = newYearValue === today.getFullYear();
+const maxMonth = isCurrentYear ? today.getMonth() + 1 : 12;
+
+const isCurrentMonth = isCurrentYear && newMonthValue === today.getMonth() + 1;
+const maxDay = isCurrentMonth ? today.getDate() + 1 : 31;
+```
+
+<Warning>
+  The past page date picker only appears on `/front` pages and requires login.
+</Warning>

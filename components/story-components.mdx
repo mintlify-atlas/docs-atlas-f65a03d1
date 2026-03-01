@@ -1,0 +1,428 @@
+---
+title: Story Components
+description: Components for enhancing Hacker News story lists and navigation
+---
+
+## Overview
+
+The story components enhance the Hacker News front page and story listings with keyboard navigation, read state tracking, and improved interaction patterns.
+
+## HNStory
+
+Core class representing a Hacker News story with methods for interaction and state management.
+
+**Location:** `src/components/story/hn-story.ts`
+
+### Constructor
+
+```typescript
+const story = new HNStory(storyRow: HTMLElement)
+```
+
+<ParamField path="storyRow" type="HTMLElement" required>
+  The DOM element representing the story row (typically a `<tr>` element with class `athing`)
+</ParamField>
+
+### Properties
+
+<ParamField path="id" type="string">
+  Unique identifier for the story
+</ParamField>
+
+<ParamField path="storyRow" type="HTMLElement">
+  Main story row element
+</ParamField>
+
+<ParamField path="subtextRow" type="HTMLElement | undefined">
+  Row containing metadata (points, author, comments count)
+</ParamField>
+
+<ParamField path="spacerRow" type="HTMLElement | undefined">
+  Spacer row between stories
+</ParamField>
+
+<ParamField path="position" type="number | undefined">
+  Story rank on the page (1-30)
+</ParamField>
+
+<ParamField path="title" type="string | undefined">
+  Story title text
+</ParamField>
+
+<ParamField path="url" type="string | undefined">
+  External URL or HN discussion link
+</ParamField>
+
+<ParamField path="commentsUrl" type="string | undefined">
+  Link to HN comments page
+</ParamField>
+
+<ParamField path="points" type="number | undefined">
+  Upvote count
+</ParamField>
+
+<ParamField path="author" type="string | undefined">
+  Username who submitted the story
+</ParamField>
+
+<ParamField path="postedDate" type="string | undefined">
+  ISO timestamp when story was posted
+</ParamField>
+
+<ParamField path="commentsCount" type="number | undefined">
+  Number of comments (0 if "discuss" link shown)
+</ParamField>
+
+<ParamField path="latestVisit" type="Browser.history.VisitItem | undefined">
+  Browser history visit data if story was read
+</ParamField>
+
+### Visibility Methods
+
+```typescript
+// Hide the story from view
+story.hide(): void
+
+// Show the story
+story.show(): void
+
+// Check if story is hidden
+story.hidden(): boolean
+```
+
+### Action Methods
+
+```typescript
+// Activate (focus) the story
+story.activate(): void
+
+// Deactivate (unfocus) the story
+story.deactivate(): void
+
+// Toggle upvote
+story.toggleVote(): boolean
+
+// Favorite the story
+story.favorite(): boolean
+
+// Flag the story
+story.flag(): boolean
+```
+
+### Usage Example
+
+```typescript
+import { HNStory } from '@/components/story/hn-story.ts';
+
+const storyRows = document.querySelectorAll('tr.athing');
+const stories = Array.from(storyRows).map(row => new HNStory(row));
+
+// Activate first story
+stories[0].activate();
+
+// Upvote the story
+if (stories[0].toggleVote()) {
+  console.log('Upvoted successfully');
+}
+
+// Hide read stories
+for (const story of stories) {
+  if (story.latestVisit) {
+    story.hide();
+  }
+}
+```
+
+---
+
+## StoryData
+
+Manager class for navigating and manipulating a collection of stories.
+
+**Location:** `src/components/story/story-data.ts`
+
+### Constructor
+
+```typescript
+const storyData = new StoryData(
+  bigbox: HTMLElement,
+  storyRows: HTMLElement[]
+)
+```
+
+<ParamField path="bigbox" type="HTMLElement" required>
+  The main content container element
+</ParamField>
+
+<ParamField path="storyRows" type="HTMLElement[]" required>
+  Array of story row elements
+</ParamField>
+
+### Properties
+
+<ParamField path="bigbox" type="HTMLElement">
+  Reference to main content container
+</ParamField>
+
+<ParamField path="hnStories" type="HNStory[]">
+  Array of all HNStory instances
+</ParamField>
+
+### Navigation Methods
+
+```typescript
+// Get story by ID
+storyData.get(id: string): HNStory | undefined
+
+// Navigate through stories
+storyData.getNext(current: HNStory, skipHidden?: boolean): HNStory | undefined
+storyData.getPrevious(current: HNStory, skipHidden?: boolean): HNStory | undefined
+
+// Get first/last stories
+storyData.first(): HNStory | undefined
+storyData.last(): HNStory | undefined
+
+// Get first visible story (top-down or bottom-up)
+storyData.firstTopDownVisible(): HNStory | undefined
+storyData.firstBottomUpVisible(): HNStory | undefined
+
+// Get story by position rank
+storyData.getByPosition(position: number): HNStory | undefined
+```
+
+### Active Story Management
+
+```typescript
+// Get currently active story
+storyData.getActiveStory(): HNStory | undefined
+
+// Activate a story
+storyData.activate(story: HNStory): void
+
+// Deactivate current story
+storyData.deactivate(): void
+```
+
+### Visibility Methods
+
+```typescript
+// Hide a story
+storyData.hideStory(hnStory: HNStory): void
+
+// Show a story
+storyData.showStory(hnStory: HNStory): void
+```
+
+### Action Methods
+
+```typescript
+// Perform actions on active story
+storyData.toggleVote(): boolean
+storyData.favorite(): boolean
+storyData.flag(): boolean
+storyData.reply(): boolean // Navigate to comments with #reply
+```
+
+### Usage Example
+
+```typescript
+import { StoryData } from '@/components/story/story-data.ts';
+
+const bigbox = document.querySelector('#bigbox');
+const storyRows = document.querySelectorAll('tr.athing');
+const storyData = new StoryData(bigbox, Array.from(storyRows));
+
+// Activate first visible story
+const first = storyData.firstTopDownVisible();
+if (first) {
+  storyData.activate(first);
+}
+
+// Navigate to next story
+const activeStory = storyData.getActiveStory();
+if (activeStory) {
+  const next = storyData.getNext(activeStory);
+  if (next) {
+    storyData.activate(next);
+  }
+}
+```
+
+---
+
+## Keyboard Navigation
+
+Provides keyboard shortcuts for navigating and interacting with stories.
+
+**Location:** `src/components/story/keyboard-navigation.ts`
+
+### API
+
+```typescript
+export const keyboardNavigation = async (
+  ctx: ContentScriptContext,
+  doc: Document,
+  storyData: StoryData,
+  navState?: KeyboardNavState
+): Promise<void>
+```
+
+### Keyboard Shortcuts
+
+| Key | Action |
+|-----|--------|
+| `j` / `J` | Move to next story |
+| `k` / `K` | Move to previous story |
+| `u` | Upvote active story |
+| `r` | Open comments for active story |
+| `f` | Favorite active story |
+| `Shift+X` | Flag active story |
+| `o` / `Enter` | Open story URL |
+| `c` | Open story comments |
+| `t` | Scroll to top |
+| `b` | Go back in browser history |
+| `Esc` | Deactivate story |
+| `1-9` | Jump to story by rank (1st-9th) |
+| `0` | Jump to 10th story |
+
+### Usage Example
+
+```typescript
+import { keyboardNavigation } from '@/components/story/keyboard-navigation.ts';
+import { StoryData } from '@/components/story/story-data.ts';
+
+const bigbox = document.querySelector('#bigbox');
+const storyRows = document.querySelectorAll('tr.athing');
+const storyData = new StoryData(bigbox, Array.from(storyRows));
+
+await keyboardNavigation(ctx, document, storyData);
+```
+
+---
+
+## Hide Read Stories
+
+Adds a checkbox to hide stories the user has already visited.
+
+**Location:** `src/components/story/hide-read-stories.ts`
+
+### API
+
+```typescript
+export const hideReadStories = async (
+  ctx: ContentScriptContext,
+  doc: Document,
+  storyData: StoryData
+): Promise<void>
+```
+
+<ParamField path="ctx" type="ContentScriptContext" required>
+  Content script context for lifecycle management
+</ParamField>
+
+<ParamField path="doc" type="Document" required>
+  Document object for DOM manipulation
+</ParamField>
+
+<ParamField path="storyData" type="StoryData" required>
+  Story data manager instance
+</ParamField>
+
+### Features
+
+- Adds "Hide read stories" checkbox above story list
+- Queries browser history to determine read stories
+- Checkbox state persists across page loads
+- Automatically updates on page show (back button)
+- Stories marked with `oj_story_hidden` class when hidden
+
+### Helper Functions
+
+```typescript
+// Create checkbox UI element
+export const createCheckbox = (doc: Document): {
+  row: HTMLTableRowElement;
+  checkbox: HTMLInputElement;
+}
+
+// Hide stories
+export const hideStories = (readStories: HNStory[]): void
+
+// Show stories
+export const showStories = (readStories: HNStory[]): void
+
+// Hide read stories once (without checkbox)
+export const hideReadStoriesOnce = async (
+  storyData: StoryData
+): Promise<void>
+```
+
+### Usage Example
+
+```typescript
+import { hideReadStories } from '@/components/story/hide-read-stories.ts';
+import { StoryData } from '@/components/story/story-data.ts';
+
+const bigbox = document.querySelector('#bigbox');
+const storyRows = document.querySelectorAll('tr.athing');
+const storyData = new StoryData(bigbox, Array.from(storyRows));
+
+await hideReadStories(ctx, document, storyData);
+// Checkbox appears above story list
+```
+
+---
+
+## Story Feature Integration
+
+The main story feature integrates all components.
+
+**Location:** `src/components/story/index.ts`
+
+### API
+
+```typescript
+export const story: ComponentFeature = {
+  id: 'story',
+  loginRequired: false,
+  matches: [`${paths.base}/*`],
+  runAt: 'document_end',
+  async main(ctx: ContentScriptContext) {
+    // Initialize all story features
+  }
+}
+```
+
+### Allowed Paths
+
+The story feature runs on these paths:
+- `/` - Front page
+- `/ask` - Ask HN
+- `/newest` - Newest stories
+- `/news` - News
+- `/show` - Show HN
+- `/jobs` - Jobs
+- `/front` - Front page archive
+- `/active` - Active discussions
+- `/past` - Past stories
+- `/noobstories` - New user stories
+- `/classic` - Classic stories
+- `/shownew` - New Show HN
+- `/pool` - Second chance pool
+- `/best` - Best stories
+- `/launches` - Launch HN
+- `/flagged` - Flagged stories
+- `/invited` - Invited stories
+- `/asknew` - New Ask HN
+- `/submitted` - User submissions
+
+### Integration Example
+
+```typescript
+import { story } from '@/components/story/index.ts';
+
+// Automatically initializes when matched paths are loaded
+// Runs:
+// 1. hideReadStories() - with checkbox
+// 2. keyboardNavigation() - after hideReadStories
+```

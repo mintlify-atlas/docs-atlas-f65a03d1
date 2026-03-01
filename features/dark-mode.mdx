@@ -1,0 +1,222 @@
+---
+title: Dark Mode
+description: Site-wide dark mode for Hacker News with Orange Juice
+---
+
+Orange Juice adds a comprehensive dark mode that preserves Hacker News' visual structure while improving contrast and readability across stories, comments, templates, and help dialogs.
+
+## Overview
+
+Dark mode transforms the entire Hacker News interface with a carefully designed color scheme that maintains the site's iconic minimalist aesthetic while being easier on the eyes in low-light conditions.
+
+<Note>
+  Dark mode preference is saved to local storage and persists across sessions.
+</Note>
+
+## Enabling Dark Mode
+
+<Tabs>
+  <Tab title="Toggle Button">
+    Click the dark mode toggle button in the top navigation bar.
+    
+    The button displays:
+    - **Sun icon** (☀️) when dark mode is off
+    - **Moon icon** (🌙) when dark mode is on
+    
+    The button includes proper ARIA attributes:
+    ```typescript
+    button.setAttribute('aria-label', 'Toggle dark mode');
+    button.setAttribute('aria-pressed', mode === 'dark' ? 'true' : 'false');
+    button.title = mode === 'dark' ? 'Dark mode on' : 'Dark mode off';
+    ```
+  </Tab>
+  
+  <Tab title="Button Location">
+    The toggle appears in the navbar, placed:
+    - After the login cell if present
+    - Or at the end of the page top navigation
+    - With a separator: ` | `
+    
+    ```typescript
+    // src/components/navbar/dark-mode-toggle.ts:43-45
+    const loginCell = navbar.querySelector<HTMLElement>('.oj-hn-login-cell');
+    const pageTops = [...navbar.querySelectorAll<HTMLElement>('span.pagetop')];
+    const target = loginCell ?? pageTops.at(-1) ?? navbar;
+    ```
+  </Tab>
+</Tabs>
+
+## Implementation
+
+### Toggle Functionality
+
+The toggle uses a preference management system:
+
+```typescript
+// src/components/navbar/dark-mode-toggle.ts:87-94
+let mode = await getDarkModePreference();
+updateButton(button, mode);
+
+const onClick = async (event: MouseEvent) => {
+  event.preventDefault();
+  event.stopPropagation();
+  mode = await toggleDarkModePreference();
+  updateButton(button, mode);
+};
+```
+
+### Button Styling
+
+<AccordionGroup>
+  <Accordion title="Button styles">
+    ```css
+    .oj-dark-mode-toggle {
+      background: transparent !important;
+      border: 0 !important;
+      padding: 0;
+      cursor: pointer;
+      vertical-align: middle;
+      color: inherit !important;
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Sun icon">
+    ```css
+    .oj-dark-mode-icon--sun {
+      fill: currentColor;
+      stroke: currentColor;
+      stroke-width: 1.6;
+    }
+    ```
+    
+    The sun icon includes a center circle and radiating lines.
+  </Accordion>
+  
+  <Accordion title="Moon icon">
+    ```css
+    .oj-dark-mode-icon--moon {
+      fill: currentColor;
+      stroke: none;
+    }
+    ```
+    
+    The moon icon uses a crescent shape created with SVG paths.
+  </Accordion>
+</AccordionGroup>
+
+## Dark Mode Colors
+
+When dark mode is active, the `html` element gets the class `oj-dark-mode`, which triggers color changes throughout the site.
+
+### Key Color Variables
+
+<CardGroup cols={2}>
+  <Card title="Backgrounds">
+    - Main background: `rgb(44, 42, 31)`
+    - Secondary background: `#302d21`
+    - User hover popups: `rgb(44, 42, 31)`
+  </Card>
+  
+  <Card title="Text & Borders">
+    - Muted text: `var(--oj-muted)`
+    - Borders: `#e8e6e3`
+    - Orange accent: `#ffd5a3` (lighter for dark mode)
+  </Card>
+</CardGroup>
+
+### Component-Specific Adaptations
+
+<Tabs>
+  <Tab title="Comments">
+    ```css
+    html.oj-dark-mode .oj_new_comment_indent {
+      box-shadow: inset -3px 0 #ffd5a3 !important;
+    }
+    ```
+    
+    Unread comments use a lighter orange border in dark mode for better visibility.
+  </Tab>
+  
+  <Tab title="User Hovers">
+    ```css
+    html.oj-dark-mode .oj_user_info_hover {
+      background: #302d21;
+      border-color: #e8e6e3;
+      color: var(--oj-muted) !important;
+    }
+    
+    html.oj-dark-mode .oj_user_info_hover.active {
+      background: rgb(44, 42, 31);
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Mermaid Diagrams">
+    Mermaid diagrams automatically re-render when dark mode is toggled:
+    
+    ```typescript
+    const themeObserver = new MutationObserver(() => {
+      rerenderMermaidBlocksInElement(doc, doc).catch((error: unknown) => {
+        console.error('Failed to rerender mermaid blocks after theme change:', error);
+      });
+      for (const rerender of previewRerenderCallbacks) {
+        rerender();
+      }
+    });
+    
+    themeObserver.observe(doc.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    ```
+    
+    This ensures diagrams look correct in both light and dark modes.
+  </Tab>
+</Tabs>
+
+## Preference Storage
+
+Dark mode preference is stored using utility functions:
+
+```typescript
+type DarkModePreference = 'light' | 'dark';
+
+const getDarkModePreference = async (): Promise<DarkModePreference> => {
+  // Retrieves from storage
+};
+
+const toggleDarkModePreference = async (): Promise<DarkModePreference> => {
+  // Toggles and saves to storage
+};
+```
+
+<Tip>
+  The preference is stored locally, so your dark mode choice persists even after closing the browser.
+</Tip>
+
+## Accessibility
+
+Dark mode includes several accessibility features:
+
+- **ARIA attributes**: Proper `aria-label` and `aria-pressed` on toggle button
+- **Keyboard accessible**: Toggle button is fully keyboard navigable
+- **High contrast**: Color choices maintain sufficient contrast ratios
+- **Visual indicators**: Clear icon states (sun/moon) for current mode
+- **Consistent styling**: All UI elements adapt to maintain visual hierarchy
+
+<Warning>
+  While dark mode improves readability in low-light conditions, some users may prefer light mode for accessibility reasons. The toggle makes it easy to switch between modes as needed.
+</Warning>
+
+## Browser Compatibility
+
+Dark mode works in all modern browsers supported by the Orange Juice extension:
+
+- Chrome/Chromium (via Chrome Web Store)
+- Firefox (coming soon)
+- Edge and other Chromium-based browsers
+
+<Note>
+  The extension automatically handles cleanup when the page context is invalidated, removing event listeners and observers to prevent memory leaks.
+</Note>

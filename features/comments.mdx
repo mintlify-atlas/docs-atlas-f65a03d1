@@ -1,0 +1,140 @@
+---
+title: Comment Features
+description: Enhanced comment reading and interaction experience on Hacker News
+---
+
+Orange Juice significantly improves the comment reading experience with visual enhancements, interactive features, and better formatting.
+
+## Inline Reply
+
+Click any "reply" link to open an inline reply form directly on the page, eliminating the need to navigate to a separate comment page.
+
+<Accordion title="How it works">
+  When you click a reply link, Orange Juice:
+  - Opens a reply form inline with 8 rows and 80 columns (`src/components/comment/inline-reply.ts:82-85`)
+  - Fetches the HMAC token automatically from the reply page
+  - Supports quoting selected text by highlighting text before clicking reply
+  - Changes the link text to "hide reply" for easy toggling
+  
+  **Quote Selection**: If you select text before clicking reply, it automatically formats it as a quoted block:
+  ```
+  > Your selected text
+  > will appear here
+  ```
+</Accordion>
+
+<Note>
+  The inline reply form includes HN's comment guidelines links for easy reference.
+</Note>
+
+## Unread Comment Highlighting
+
+When you revisit a thread within 3 days, new comments added since your last visit are clearly marked with an orange left border.
+
+<Accordion title="Implementation details">
+  - Tracks comments you've read using local storage (`src/components/comment/highlight-unread-comments.ts:88`)
+  - New comments get a `box-shadow: inset -3px 0 #f6b391` on the indent cell
+  - Highlight becomes brighter (`#ff6000`) on hover for easy identification
+  - Data expires after 3 days to keep storage clean
+  - Only works on threads where you can still reply (not archived)
+</Accordion>
+
+## Mermaid Diagram Rendering
+
+Mermaid diagrams render automatically when wrapped in a `<mermaid>` block with two leading spaces on every line inside the block.
+
+<Tabs>
+  <Tab title="How to use">
+    ```html
+    <mermaid>
+      graph TD
+      A[Start] --> B[Finish]
+    </mermaid>
+    ```
+    
+    <Warning>
+      Each line inside the `<mermaid>` block must have exactly 2 leading spaces (HN requirement).
+    </Warning>
+  </Tab>
+  
+  <Tab title="Preview while typing">
+    When composing a comment with mermaid diagrams, you get a live preview below the textarea showing how your diagram will render. The preview updates as you type and adapts to dark mode automatically.
+    
+    The preview system uses a stale-result guard to ensure only the most recent render is displayed, even when typing rapidly (`src/components/comment/beautiful-mermaid.ts:73`).
+  </Tab>
+</Tabs>
+
+## Collapsible Threads
+
+### Click Indent to Collapse
+
+Click on the indent area (left margin) of any comment to collapse or expand the thread, providing the same functionality as the collapse/expand toggle button.
+
+- Indent becomes clickable with hover effect: `box-shadow: inset -3px 0 #888`
+- Cursor changes to pointer on hover
+- Works on all nested comments
+
+### Collapse Root Button
+
+On nested comments, a `[collapse root]` button appears in the comment header, allowing you to collapse the entire top-level thread and scroll back to it.
+
+<Tip>
+  This is especially useful for navigating long comment threads and focusing on specific sub-discussions.
+</Tip>
+
+## OP Highlighting
+
+The original poster's username is marked with an `[op]` label and displayed in orange (`#ff6000`), making it easy to identify their comments throughout the thread.
+
+```typescript
+// src/components/comment/init-comment-ux.ts:65-67
+if (username && username === commentAuthor.innerText) {
+  commentAuthor.innerText += ' [op]';
+  commentAuthor.classList.add('oj_op');
+}
+```
+
+## Code Formatting
+
+### Backticks to Code
+
+Convert text wrapped in backticks to HTML `<code>` elements automatically:
+
+- `` `inline code` `` becomes `<code>inline code</code>`
+- Uses regex to match backticks while respecting escape sequences
+
+### Enhanced Code Blocks
+
+Code blocks and inline code snippets get improved styling:
+- Light gray background (`#e4e4e4`)
+- Rounded corners (6px border radius)
+- Proper padding for readability
+- Works in both light and dark modes
+
+## Visual Improvements
+
+### Custom Indent Width
+
+Comment indentation is adjusted to 40px width (from default), making deeply nested threads easier to follow:
+
+```typescript
+// src/components/comment/init-comment-ux.ts:54-56
+const indentLevel = indentImage.width / 40;
+indentImage.width = indentLevel * customWidth; // customWidth = 40
+```
+
+### Visual Indent Guides
+
+A subtle shadow appears on the left edge of indented comments (`box-shadow: inset -1px 0 #ccc`), providing a visual guide to thread structure.
+
+### Dead Comment Styling
+
+Comments marked as `[dead]` by moderators are displayed in a distinct muted color (`#d89899`), making it clear when a comment has been removed or flagged.
+
+## Auto-Resize Textarea
+
+Comment textareas automatically adjust their height based on content, ensuring you can see your entire comment without scrolling.
+
+<Note>
+  All event listeners are properly cleaned up when the page context is invalidated to prevent memory leaks.
+</Note>

@@ -1,0 +1,292 @@
+---
+title: Navbar Components
+description: Components for enhancing the Hacker News navigation bar
+---
+
+## Overview
+
+The navbar components add enhanced functionality to the Hacker News header, including dark mode toggle and expandable link menus.
+
+## Dark Mode Toggle
+
+Adds a dark mode toggle button to the navbar with SVG icons.
+
+**Location:** `src/components/navbar/dark-mode-toggle.ts`
+
+### API
+
+```typescript
+export const darkModeToggle = async (
+  ctx: ContentScriptContext,
+  doc: Document,
+  navbar: HTMLElement | null
+): Promise<void>
+```
+
+<ParamField path="ctx" type="ContentScriptContext" required>
+  Content script context for lifecycle management
+</ParamField>
+
+<ParamField path="doc" type="Document" required>
+  Document object for DOM manipulation
+</ParamField>
+
+<ParamField path="navbar" type="HTMLElement | null" required>
+  Navbar element to attach the toggle button
+</ParamField>
+
+### Features
+
+- Toggle button with sun/moon icons
+- Automatically detects current theme preference
+- Updates button state and ARIA attributes
+- Persists preference across page loads
+- Integrates with existing navbar layout
+
+### Button States
+
+| Mode | Icon | Title | ARIA Pressed |
+|------|------|-------|-------------|
+| Light | Sun (☀️) | "Dark mode off" | `false` |
+| Dark | Moon (🌙) | "Dark mode on" | `true` |
+
+### Usage Example
+
+```typescript
+import { darkModeToggle } from '@/components/navbar/dark-mode-toggle.ts';
+
+const navbar = document.querySelector<HTMLElement>('.oj-hn-nav-table') ??
+                document.querySelector<HTMLElement>('#hnmain > tbody > tr');
+
+await darkModeToggle(ctx, document, navbar);
+// Toggle button appears in navbar
+```
+
+### Styling
+
+The component injects the following styles:
+
+```css
+.oj-dark-mode-toggle {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0;
+  cursor: pointer;
+  vertical-align: middle;
+  color: inherit !important;
+}
+
+.oj-dark-mode-toggle .oj-dark-mode-icon {
+  width: 12px;
+  height: 12px;
+  display: inline-block;
+}
+```
+
+---
+
+## More Links Dropdown
+
+Adds a "more" dropdown menu to the navbar with additional HN pages.
+
+**Location:** `src/components/navbar/more-links-dropdown.ts`
+
+### API
+
+```typescript
+export const moreLinksDropdown = (
+  ctx: ContentScriptContext,
+  doc: Document,
+  navbar: HTMLElement | null
+): void
+```
+
+<ParamField path="ctx" type="ContentScriptContext" required>
+  Content script context for lifecycle management
+</ParamField>
+
+<ParamField path="doc" type="Document" required>
+  Document object for DOM manipulation
+</ParamField>
+
+<ParamField path="navbar" type="HTMLElement | null" required>
+  Navbar element to attach the dropdown
+</ParamField>
+
+### Available Links
+
+The dropdown includes links to:
+
+| Link | Description |
+|------|-------------|
+| `leaders` | Users with most karma |
+| `best` | Highest-voted recent stories |
+| `pool` | Second chance pool |
+| `active` | Most active current discussions |
+| `newpoll` | Create a new poll |
+| `shownew` | Show HN new stories |
+| `asknew` | Ask HN new stories |
+| `launches` | Show Launch HN stories |
+| `invited` | Invited stories |
+| `classic` | Classic stories |
+| `whoishiring` | Who's hiring threads |
+| `bestcomments` | Highest-voted recent comments |
+| `highlights` | Highlighted comments |
+| `noobstories` | Submissions from new accounts |
+| `noobcomments` | Comments from new accounts |
+| `topcolors` | List of custom topcolors |
+
+### Features
+
+- Dropdown menu with up/down arrow indicator
+- Excludes current page from dropdown
+- Tooltips show link descriptions
+- Automatic positioning below navbar
+- Click outside to close
+
+### Usage Example
+
+```typescript
+import { moreLinksDropdown } from '@/components/navbar/more-links-dropdown.ts';
+
+const navbar = document.querySelector<HTMLElement>('.oj-hn-nav-table') ??
+                document.querySelector<HTMLElement>('#hnmain > tbody > tr');
+
+moreLinksDropdown(ctx, document, navbar);
+// "more ▾" link appears in navbar
+```
+
+### Button Text States
+
+| State | Text |
+|-------|------|
+| Closed | "more ▾" |
+| Open | "more ▴" |
+
+---
+
+## Navbar Feature Integration
+
+The main navbar feature integrates all navbar components.
+
+**Location:** `src/components/navbar/index.ts`
+
+### API
+
+```typescript
+export const navbar: ComponentFeature = {
+  id: 'navbar',
+  loginRequired: true,
+  matches: [`${paths.base}/*`],
+  runAt: 'document_end',
+  async main(ctx: ContentScriptContext) {
+    const navbar = document.querySelector<HTMLElement>('.oj-hn-nav-table') ??
+                    document.querySelector<HTMLElement>('#hnmain > tbody > tr');
+
+    await darkModeToggle(ctx, document, navbar);
+    moreLinksDropdown(ctx, document, navbar);
+  }
+}
+```
+
+### Features
+
+- Requires user to be logged in
+- Runs on all HN pages
+- Initializes dark mode toggle first
+- Then initializes more links dropdown
+- Automatically detects navbar element
+
+### Integration Example
+
+```typescript
+import { navbar } from '@/components/navbar/index.ts';
+
+// Automatically initializes when pages load
+// Both dark mode toggle and more links dropdown
+// are added to the navbar
+```
+
+---
+
+## Dropdown Utilities
+
+Shared dropdown functionality used by navbar components.
+
+**Location:** `src/components/common/dropdown.ts`
+
+### createDropdown
+
+Creates an interactive dropdown menu with keyboard and mouse support.
+
+```typescript
+export const createDropdown = (options: {
+  triggerElement: HTMLElement;
+  dropdownElement: HTMLElement;
+  doc: Document;
+  ctx: ContentScriptContext;
+  onToggle?: (isOpen: boolean) => void;
+}): void
+```
+
+<ParamField path="triggerElement" type="HTMLElement" required>
+  Element that triggers the dropdown (button/link)
+</ParamField>
+
+<ParamField path="dropdownElement" type="HTMLElement" required>
+  The dropdown menu element
+</ParamField>
+
+<ParamField path="doc" type="Document" required>
+  Document object
+</ParamField>
+
+<ParamField path="ctx" type="ContentScriptContext" required>
+  Content script context
+</ParamField>
+
+<ParamField path="onToggle" type="(isOpen: boolean) => void">
+  Callback function when dropdown state changes
+</ParamField>
+
+### createDropdownStyle
+
+Generates CSS styles for dropdown menus.
+
+```typescript
+export const createDropdownStyle = (
+  componentName: string
+): string
+```
+
+<ParamField path="componentName" type="string" required>
+  Unique class name prefix for the dropdown
+</ParamField>
+
+### Usage Example
+
+```typescript
+import { createDropdown, createDropdownStyle } from '@/components/common/dropdown';
+
+const COMPONENT_NAME = 'my-dropdown';
+
+// Add styles
+const style = doc.createElement('style');
+style.innerHTML = createDropdownStyle(COMPONENT_NAME);
+doc.head.appendChild(style);
+
+// Create dropdown
+const button = doc.createElement('button');
+const dropdown = doc.createElement('div');
+dropdown.classList.add(COMPONENT_NAME);
+
+createDropdown({
+  triggerElement: button,
+  dropdownElement: dropdown,
+  doc,
+  ctx,
+  onToggle: (isOpen) => {
+    button.textContent = isOpen ? 'Close' : 'Open';
+  }
+});
+```

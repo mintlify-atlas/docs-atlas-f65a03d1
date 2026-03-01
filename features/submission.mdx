@@ -1,0 +1,182 @@
+---
+title: Submission Features
+description: Enhanced story submission experience on Hacker News
+---
+
+Orange Juice enhances the submission form with helpful tools to make submitting stories easier and more efficient.
+
+## Character Count
+
+When submitting a new story, a character counter appears next to the title input field showing how many characters remain until you reach the 80-character limit.
+
+### How It Works
+
+<Steps>
+  <Step title="Real-time updates">
+    The counter updates as you type, showing remaining characters.
+  </Step>
+  
+  <Step title="Stays visible until limit">
+    The counter displays: `80 remaining`, `79 remaining`, etc., until you reach the 80-character limit.
+  </Step>
+  
+  <Step title="Hides when over limit">
+    When you exceed 80 characters, the counter disappears (empty string is shown).
+  </Step>
+</Steps>
+
+### Implementation
+
+```typescript
+// src/components/submit/remaining.ts:5-16
+const TITLE_LENGTH_LIMIT = 80;
+
+export function updateCharacterCount(titleInput: HTMLInputElement, doc: Document): EventListener {
+  const span = doc.createElement('span');
+  titleInput.parentElement?.append(span);
+
+  const inputListener = () => {
+    const length = titleInput.value.length;
+    span.innerHTML = length <= TITLE_LENGTH_LIMIT 
+      ? `${TITLE_LENGTH_LIMIT - length} remaining` 
+      : '';
+  };
+  titleInput.addEventListener('input', inputListener);
+
+  return inputListener;
+}
+```
+
+<Tip>
+  The 80-character limit is a Hacker News guideline for clear, concise titles. The counter helps you stay within this limit while composing your submission.
+</Tip>
+
+## Fetch Title Button
+
+A "fetch title" button appears next to the URL input field on the story submission form. Click it to automatically retrieve and populate the title from the provided URL.
+
+### Features
+
+<AccordionGroup>
+  <Accordion title="Automatic title extraction">
+    The button:
+    - Fetches the page at the URL you provided
+    - Extracts the `<title>` tag from the HTML
+    - Populates the title input field with the result
+    - Saves you from manually copying and pasting titles
+  </Accordion>
+  
+  <Accordion title="Smart URL handling">
+    The fetch title feature handles URLs intelligently:
+    
+    ```typescript
+    // src/components/submit/fetch-title.ts:36-43
+    let { value } = urlInput;
+    value = value.trim();
+    if (!value.length) {
+      return;
+    }
+    if (!value.startsWith('http')) {
+      value = `https://${value}`;
+    }
+    ```
+    
+    - Trims whitespace
+    - Adds `https://` if protocol is missing
+    - Validates URL before fetching
+  </Accordion>
+  
+  <Accordion title="Loading state">
+    While fetching the title:
+    - Button is disabled to prevent multiple requests
+    - User receives visual feedback
+    - Re-enables after fetch completes or errors
+    
+    ```typescript
+    fetchTitleBtn.disabled = true;
+    try {
+      // fetch title
+    } finally {
+      fetchTitleBtn.disabled = false;
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### API Integration
+
+The feature uses a worker service to fetch titles:
+
+```typescript
+const service = createClientServices().getFetchRemoteService();
+const url = `${WORKER_BASE}/title?url=${encodeURIComponent(value)}`;
+const result = await service.fetchJson(url);
+```
+
+Response format:
+```typescript
+interface Title {
+  title: string;
+}
+```
+
+### Button Placement
+
+The button is styled as a link button and placed directly after the URL input:
+
+```typescript
+const fetchTitleBtn = doc.createElement('button');
+fetchTitleBtn.style.paddingLeft = '10px';
+fetchTitleBtn.classList.add('oj_link_button');
+fetchTitleBtn.innerText = 'fetch title';
+
+urlInputParent.append(fetchTitleBtn);
+```
+
+<Note>
+  The fetch title button appears only on the submission page (`/submit`) and requires the URL input field to be present.
+</Note>
+
+## Error Handling
+
+<Warning>
+  If the title fetch fails (network error, invalid URL, etc.), the error is logged to the console and the button re-enables, allowing you to try again or manually enter the title.
+</Warning>
+
+```typescript
+try {
+  // fetch and populate title
+} catch (e) {
+  console.error('Error fetching title:', e);
+} finally {
+  fetchTitleBtn.disabled = false;
+}
+```
+
+## Workflow Example
+
+<Steps>
+  <Step title="Paste URL">
+    Copy a URL and paste it into the URL field on `/submit`.
+  </Step>
+  
+  <Step title="Click fetch title">
+    Click the "fetch title" button that appears next to the URL input.
+  </Step>
+  
+  <Step title="Title populates">
+    The title field automatically fills with the page's title.
+  </Step>
+  
+  <Step title="Edit if needed">
+    Edit the title as needed, watching the character counter to stay under 80 characters.
+  </Step>
+  
+  <Step title="Submit">
+    Submit your story with a properly formatted title.
+  </Step>
+</Steps>
+
+<Tip>
+  This workflow saves time and ensures accurate titles when submitting links to Hacker News.
+</Tip>

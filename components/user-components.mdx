@@ -1,0 +1,367 @@
+---
+title: User Components
+description: Components for enhancing user profiles and interactions
+---
+
+## Overview
+
+The user components enhance user profiles, add hover previews, and improve navigation within user-related pages.
+
+## Show User Info on Hover
+
+Displays user information in a popover when hovering over usernames.
+
+**Location:** `src/components/user/show-user-info-hover.ts`
+
+### API
+
+```typescript
+export const showUserInfoOnHover = (
+  ctx: ContentScriptContext,
+  doc: Document,
+  username?: string
+): void
+```
+
+<ParamField path="ctx" type="ContentScriptContext" required>
+  Content script context for lifecycle management
+</ParamField>
+
+<ParamField path="doc" type="Document" required>
+  Document object for DOM manipulation
+</ParamField>
+
+<ParamField path="username" type="string">
+  Currently logged-in username (for API requests)
+</ParamField>
+
+### Features
+
+- Displays user info popover on username hover
+- Shows: username, creation date, karma, submission count, about section
+- New users (< 1 month old) displayed in green
+- Auto-linkifies URLs in about section
+- Smart positioning to avoid cursor conflicts
+- Dark mode support
+- Caches user data to reduce API calls
+
+### Displayed Information
+
+| Field | Description |
+|-------|-------------|
+| **user** | Username (green if account < 1 month old) |
+| **created** | Account creation date (localized format) |
+| **karma** | User's karma score |
+| **submitted** | Total number of submissions |
+| **about** | User's about section (linkified) |
+
+### Usage Example
+
+```typescript
+import { showUserInfoOnHover } from '@/components/user/show-user-info-hover.ts';
+
+showUserInfoOnHover(ctx, document, 'currentuser');
+// Now hovering over any .hnuser link shows info popover
+```
+
+### Styling
+
+```css
+.oj_user_info_hover {
+  position: absolute;
+  background: #f6f6ef;
+  z-index: 2;
+  border: 1px solid #000;
+  padding: 3px;
+  max-width: 500px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+html.oj-dark-mode .oj_user_info_hover {
+  background: #302d21;
+  border-color: #e8e6e3;
+  color: var(--oj-muted) !important;
+}
+```
+
+---
+
+## Profile Links Dropdown
+
+Replaces username link in navbar with dropdown menu containing profile-related links.
+
+**Location:** `src/components/user/profile-links-dropdown.ts`
+
+### API
+
+```typescript
+export const profileLinksDropdown = (
+  ctx: ContentScriptContext,
+  doc: Document
+): void
+```
+
+<ParamField path="ctx" type="ContentScriptContext" required>
+  Content script context for lifecycle management
+</ParamField>
+
+<ParamField path="doc" type="Document" required>
+  Document object for DOM manipulation
+</ParamField>
+
+### Available Links
+
+| Link | Path | Description |
+|------|------|-------------|
+| **profile** | `/user?id={user}` | User profile page |
+| **submissions** | `/submitted?id={user}` | User's submitted stories |
+| **comments** | `/threads?id={user}` | User's comment threads |
+| **hidden** | `/hidden` | Hidden stories |
+| **flagged submissions** | `/flagged?id={user}` | User's flagged stories |
+| **flagged comments** | `/flagged?id={user}&kind=comment` | User's flagged comments |
+| **upvoted submissions** | `/upvoted?id={user}` | User's upvoted stories |
+| **upvoted comments** | `/upvoted?id={user}&comments=t` | User's upvoted comments |
+| **favorite submissions** | `/favorites?id={user}` | User's favorited stories |
+| **favorite comments** | `/favorites?id={user}&comments=t` | User's favorited comments |
+| **logout** | `/logout?...` | Logout link (if available) |
+
+### Features
+
+- Replaces navbar username link with dropdown
+- Automatically removes redundant logout link from navbar
+- Shows username with up/down arrow indicator
+- Click outside to close
+- Skips activation on user profile pages
+
+### Usage Example
+
+```typescript
+import { profileLinksDropdown } from '@/components/user/profile-links-dropdown.ts';
+
+profileLinksDropdown(ctx, document);
+// Username in navbar becomes dropdown menu
+```
+
+### Button Text States
+
+| State | Text |
+|-------|------|
+| Closed | "{username} ▾" |
+| Open | "{username} ▴" |
+
+---
+
+## Top Leaders Karma
+
+Displays karma scores on the `/leaders` page.
+
+**Location:** `src/components/user/top-leaders-karma.ts`
+
+### API
+
+```typescript
+export const topLeadersKarma = async (
+  doc: Document
+): Promise<void>
+```
+
+<ParamField path="doc" type="Document" required>
+  Document object for DOM manipulation
+</ParamField>
+
+### Features
+
+- Only runs on `/leaders` page
+- Fetches karma scores for top 10 users
+- Updates DOM to display karma next to usernames
+- Uses HN API to get accurate karma counts
+
+### Usage Example
+
+```typescript
+import { topLeadersKarma } from '@/components/user/top-leaders-karma.ts';
+
+await topLeadersKarma(document);
+// Karma scores appear on /leaders page
+```
+
+---
+
+## User About Linkify
+
+Converts URLs in user "about" sections to clickable links.
+
+**Location:** `src/components/user/user-about-linkify.ts`
+
+### API
+
+```typescript
+export const userAboutLinkify = (
+  _ctx: ContentScriptContext,
+  doc: Document
+): void
+```
+
+<ParamField path="_ctx" type="ContentScriptContext" required>
+  Content script context (unused)
+</ParamField>
+
+<ParamField path="doc" type="Document" required>
+  Document object for DOM manipulation
+</ParamField>
+
+### Features
+
+- Runs on all user profile pages
+- Detects "about:" field in user info table
+- Converts plain text URLs to `<a>` tags
+- Adds `rel="noopener"` and `target="_blank"` for security
+- Skips pages where about field is in edit mode
+
+### Usage Example
+
+```typescript
+import { userAboutLinkify } from '@/components/user/user-about-linkify.ts';
+
+userAboutLinkify(ctx, document);
+// URLs in about section become clickable links
+```
+
+---
+
+## Topcolors Template
+
+Provides UI for customizing HN's header color (topcolor).
+
+**Location:** `src/components/user/topcolors-template.tsx`
+
+### Features
+
+- Color picker interface for HN header customization
+- Preview of color changes
+- Saves preference to user profile
+- React component for rich UI
+
+<Note>
+This component uses React and is rendered using `createRoot` from React DOM.
+</Note>
+
+---
+
+## Login Template
+
+Enhances the login page with additional features.
+
+**Location:** `src/components/user/login-template.ts`
+
+### Features
+
+- Enhanced login form styling
+- Additional UX improvements
+- Error handling and validation feedback
+
+---
+
+## User Feature Integration
+
+The main user feature integrates all user components.
+
+**Location:** `src/components/user/index.ts`
+
+### API
+
+```typescript
+export const user: ComponentFeature = {
+  id: 'user',
+  loginRequired: true,
+  matches: [`${paths.base}/*`],
+  runAt: 'document_end',
+  main(ctx: ContentScriptContext) {
+    return Promise.all([
+      Promise.resolve().then(() => 
+        showUserInfoOnHover(ctx, document, user.username)
+      ),
+      Promise.resolve().then(() => 
+        profileLinksDropdown(ctx, document)
+      ),
+      Promise.resolve().then(() => 
+        userAboutLinkify(ctx, document)
+      ),
+      Promise.resolve().then(() => 
+        topLeadersKarma(document)
+      ),
+    ]);
+  }
+}
+```
+
+### Features
+
+- Requires user to be logged in
+- Runs on all HN pages
+- Initializes all user components in parallel
+- Provides current username to components that need it
+
+### Integration Example
+
+```typescript
+import { user } from '@/components/user/index.ts';
+
+// Automatically initializes when pages load
+// All user enhancement features are activated:
+// - User info hover popovers
+// - Profile dropdown menu
+// - About section linkification
+// - Leaders page karma display
+```
+
+---
+
+## API Module
+
+Shared API utilities for fetching user data.
+
+**Location:** `src/utils/api.ts`
+
+### getUserInfo
+
+Fetches user information from HN API.
+
+```typescript
+export const getUserInfo = async (
+  userName: string,
+  currentUser?: string
+): Promise<UserInfo | undefined>
+```
+
+<ParamField path="userName" type="string" required>
+  Username to fetch information for
+</ParamField>
+
+<ParamField path="currentUser" type="string">
+  Currently logged-in username (for authenticated requests)
+</ParamField>
+
+### UserInfo Interface
+
+```typescript
+interface UserInfo {
+  id: string;           // Username
+  created: number;      // Unix timestamp
+  karma: number;        // Karma score
+  about?: string;       // HTML about section
+  submitted: number[];  // Array of story/comment IDs
+}
+```
+
+### Usage Example
+
+```typescript
+import { apiModule } from '@/utils/api';
+
+const userInfo = await apiModule.getUserInfo('pg');
+if (userInfo) {
+  console.log(`${userInfo.id} has ${userInfo.karma} karma`);
+}
+```

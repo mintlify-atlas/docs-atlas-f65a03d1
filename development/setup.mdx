@@ -1,0 +1,224 @@
+---
+title: Development Setup
+description: Set up your local development environment for Orange Juice
+---
+
+## Prerequisites
+
+Orange Juice uses Bun as its package manager and runtime. You'll need to install it before getting started.
+
+<Steps>
+  <Step title="Install Bun">
+    Follow the installation instructions at [bun.sh](https://bun.sh).
+
+    ```bash
+    curl -fsSL https://bun.sh/install | bash
+    ```
+
+    Verify the installation:
+
+    ```bash
+    bun --version
+    ```
+  </Step>
+
+  <Step title="Clone the Repository">
+    Clone the Orange Juice repository to your local machine:
+
+    ```bash
+    git clone https://github.com/OrangeJuiceExtension/OrangeJuice.git
+    cd OrangeJuice
+    ```
+  </Step>
+
+  <Step title="Install Dependencies">
+    Install all project dependencies using Bun:
+
+    ```bash
+    bun install
+    ```
+
+    This will also run the `postinstall` script which executes `wxt prepare` to set up the WXT framework.
+  </Step>
+
+  <Step title="Run Development Mode">
+    Start the extension in development mode:
+
+    ```bash
+    bun run dev
+    ```
+
+    This automatically opens a Chrome window with the extension loaded. The extension will hot-reload when you make changes to the source code.
+
+    For Firefox development:
+
+    ```bash
+    bun run dev:firefox
+    ```
+  </Step>
+</Steps>
+
+## Available Scripts
+
+The project includes several npm scripts for common development tasks:
+
+### Development
+
+<CodeGroup>
+```bash Chrome
+bun run dev
+```
+
+```bash Firefox
+bun run dev:firefox
+```
+</CodeGroup>
+
+Starts the extension in development mode with hot module reloading. Opens a browser window with the extension loaded.
+
+### Building
+
+<CodeGroup>
+```bash Chrome
+bun run build
+```
+
+```bash Firefox
+bun run build:firefox
+```
+</CodeGroup>
+
+Builds the extension for production. Output is generated in the `.output/` directory:
+- Chrome: `.output/chrome-mv3/`
+- Firefox: `.output/firefox-mv3/`
+
+### Watch Mode
+
+```bash
+bun run build-watch
+```
+
+Watches for file changes in `src/**/*` and automatically rebuilds the extension. Useful for testing production builds.
+
+### Testing
+
+```bash
+bun run test
+```
+
+Runs the test suite using Vitest. See the [Testing](/development/testing) page for more details.
+
+### Code Quality
+
+<CodeGroup>
+```bash Check
+bun run check
+```
+
+```bash Fix
+bun run fix
+```
+</CodeGroup>
+
+- `check`: Runs linting and formatting checks using Ultracite (Biome)
+- `fix`: Automatically fixes linting and formatting issues
+
+### Type Checking
+
+```bash
+bun run compile
+```
+
+Runs TypeScript compiler in check mode (`tsc --noEmit`) to verify type correctness without emitting files.
+
+### Packaging
+
+<CodeGroup>
+```bash Chrome
+bun run zip
+```
+
+```bash Firefox
+bun run zip:firefox
+```
+</CodeGroup>
+
+Creates distribution zip files for uploading to browser extension stores.
+
+### Other Scripts
+
+```bash Icons
+bun run icons
+```
+
+Generates icon assets from source files using `scripts/generate-icons.ts`.
+
+```bash Clean
+bun run clean
+```
+
+Removes build artifacts: `.output`, `build-docs`, and `playwright-report` directories.
+
+```bash CI
+bun run ci
+```
+
+Runs the complete CI pipeline: checks, tests, builds, and creates distribution packages.
+
+## Manual Browser Installation
+
+If you want to manually load the extension into your browser:
+
+<Steps>
+  <Step title="Build the Extension">
+    ```bash
+    bun run build
+    ```
+  </Step>
+
+  <Step title="Load in Chrome">
+    1. Navigate to `chrome://extensions/`
+    2. Enable "Developer mode" in the top right
+    3. Click "Load unpacked"
+    4. Select the `.output/chrome-mv3` folder
+  </Step>
+
+  <Step title="Load in Firefox">
+    1. Navigate to `about:debugging#/runtime/this-firefox`
+    2. Click "Load Temporary Add-on..."
+    3. Navigate to `.output/firefox-mv3` and select `manifest.json`
+
+    <Note>
+      Temporary extensions in Firefox are removed when you restart the browser.
+    </Note>
+  </Step>
+</Steps>
+
+## Development Workflow
+
+1. **Make changes** to source files in `src/`
+2. **Run checks** frequently: `bun run check`
+3. **Fix issues** automatically: `bun run fix`
+4. **Write tests** for new features (required for all contributions)
+5. **Run tests** before committing: `bun run test`
+6. **Test in browser** using `bun run dev`
+
+<Warning>
+  Always use Bun as the package manager. Never use npm, pnpm, or yarn for this project.
+</Warning>
+
+## Git Hooks
+
+The project uses Lefthook for Git hooks. After running `bun install`, hooks are automatically installed via the `prepare` script:
+
+```bash
+bun run prepare
+```
+
+These hooks help maintain code quality by running checks before commits.
+
+## Next Steps
+
+- Learn about the [Project Architecture](/development/architecture)
+- Read the [Testing Guide](/development/testing)
+- Review [Contributing Guidelines](/development/contributing)

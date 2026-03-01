@@ -1,80 +1,357 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get started with Orange Juice and learn how to use its key features to enhance your Hacker News experience
 ---
 
-## Get started in three steps
+# Quickstart
 
-Get your documentation site running locally and make your first customization.
+This guide will walk you through the essential Orange Juice features and show you how to get the most out of the extension.
 
-### Step 1: Set up your local environment
+<Info>
+  Make sure you've [installed Orange Juice](/installation) before following this guide.
+</Info>
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+## Your first Orange Juice session
+
+<Steps>
+  <Step title="Visit Hacker News">
+    Navigate to [https://news.ycombinator.com/](https://news.ycombinator.com/)
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    You'll immediately notice subtle enhancements to the interface, including improved comment styling and navigation elements.
+  </Step>
+  
+  <Step title="Enable dark mode">
+    Look for the dark mode toggle in the top navigation bar. Click it to switch between light and dark themes.
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+    The dark mode preserves Hacker News' visual structure while improving contrast and readability.
+  </Step>
+  
+  <Step title="View keyboard shortcuts">
+    Press `?` on any HN page to see all available keyboard shortcuts.
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    This opens a modal with a comprehensive list of navigation shortcuts you can use to browse HN more efficiently.
+  </Step>
+</Steps>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+## Essential features
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+### Inline reply to comments
 
-### Step 3: Go live
+One of the most useful features is the ability to reply to comments without leaving the page.
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+<Steps>
+  <Step title="Open a comment thread">
+    Click on any story's comment link to view the discussion.
+  </Step>
+  
+  <Step title="Click reply">
+    Click the "reply" link under any comment. Instead of navigating to a new page, an inline reply form appears directly below the comment.
+  </Step>
+  
+  <Step title="Quote selected text (optional)">
+    Before clicking reply, you can select text from the comment. When you click reply, the selected text will be automatically quoted in your reply.
+  </Step>
+  
+  <Step title="Write and submit">
+    Type your reply in the textarea. The textarea automatically resizes as you type. Click "add comment" to submit.
+  </Step>
+</Steps>
 
-## Next steps
+<Tip>
+  The inline reply feature saves time and keeps you in context while participating in discussions.
+</Tip>
 
-Now that you have your docs running, explore these key features:
+### Keyboard navigation
 
-<CardGroup cols={2}>
+Navigate stories and comments efficiently without touching your mouse.
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
+#### On story listing pages
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
+<CodeGroup>
+```text Story navigation
+j / k       Navigate to next/previous story
+o / Enter   Open story link
+c           Open comments
+v           Upvote story
+u           Un-vote story
+h           Hide story
+?           Show keyboard shortcuts help
+```
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
+```text Comment navigation
+j / k       Navigate to next/previous comment
+p           Navigate to parent comment
+o / Enter   Open comment link
+r           Reply to comment
+v           Upvote comment
+u           Un-vote comment
+?           Show keyboard shortcuts help
+```
+</CodeGroup>
 
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
+<Steps>
+  <Step title="Try navigating stories">
+    On the front page, press `j` to move down to the next story, and `k` to move up to the previous story.
+    
+    The selected story will be highlighted with a visual indicator.
+  </Step>
+  
+  <Step title="Open a story or comments">
+    With a story selected, press `o` to open the story link in a new tab, or `c` to open the comments.
+  </Step>
+  
+  <Step title="Navigate comments">
+    In a comment thread, use `j` and `k` to navigate between comments. Press `r` to reply to the selected comment inline.
+  </Step>
+</Steps>
 
-</CardGroup>
+### Hide read stories
+
+Focus on new content by hiding stories you've already visited.
+
+<Steps>
+  <Step title="Find the checkbox">
+    On any story listing page (front page, newest, best, etc.), look for the "Hide read stories" checkbox at the top of the page.
+  </Step>
+  
+  <Step title="Enable hiding">
+    Check the box to hide all stories you've previously visited. This uses your browser's history to determine which links you've seen.
+  </Step>
+  
+  <Step title="See only new content">
+    The page will update to show only stories you haven't opened yet, making it easier to catch up on new submissions.
+  </Step>
+</Steps>
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  Your preference is remembered, so the checkbox will stay checked across sessions.
 </Note>
+
+### Unread comment highlighting
+
+Never miss new replies in discussions you're following.
+
+<Steps>
+  <Step title="Visit a comment thread">
+    Open any story with comments. Read through the discussion.
+  </Step>
+  
+  <Step title="Return later">
+    Come back to the same thread within 3 days.
+  </Step>
+  
+  <Step title="See new comments highlighted">
+    New comments added since your last visit will be highlighted with an orange left border. Hover over them to see an even brighter highlight.
+  </Step>
+</Steps>
+
+<Info>
+  Orange Juice tracks which comments you've read locally in your browser. Comment read state is remembered for 3 days.
+</Info>
+
+### User information on hover
+
+Quickly view user profiles without navigating away from the page.
+
+<Steps>
+  <Step title="Hover over a username">
+    On any HN page, hover your mouse over any username (in comments, stories, or elsewhere).
+  </Step>
+  
+  <Step title="View user details">
+    A popup appears showing:
+    - Account creation date
+    - Karma score
+    - Number of submissions
+    - User's about section
+    
+    New users (less than 1 month old) are highlighted in green.
+  </Step>
+  
+  <Step title="Click links in about">
+    Move your mouse over the popup to keep it open. Any links in the user's about section are clickable.
+  </Step>
+</Steps>
+
+### Favorite items
+
+Save comments and stories for later reference.
+
+<Steps>
+  <Step title="Find the favorite button">
+    Next to the "favorite" link on comments and stories, you'll see an enhanced favorite button.
+  </Step>
+  
+  <Step title="Click to favorite">
+    Click the button to save the item. The action happens in place without redirecting you to a new page.
+  </Step>
+  
+  <Step title="Access your favorites">
+    View all your favorited items by visiting your profile and clicking the "favorites" link.
+  </Step>
+</Steps>
+
+## Advanced features
+
+### Mermaid diagram rendering
+
+Orange Juice automatically renders Mermaid diagrams in comments.
+
+<Accordion title="How to write Mermaid diagrams in HN comments">
+  Wrap your Mermaid diagram in `<mermaid>` tags with two leading spaces on every line inside the block:
+  
+  ```html
+  <mermaid>
+    graph TD
+      A[Start] --> B[Process]
+      B --> C[End]
+  </mermaid>
+  ```
+  
+  The diagram will be automatically rendered for users with Orange Juice installed.
+</Accordion>
+
+### Past page date picker
+
+Explore Hacker News history with an interactive date picker.
+
+<Steps>
+  <Step title="Navigate to /front">
+    Visit [https://news.ycombinator.com/front](https://news.ycombinator.com/front)
+  </Step>
+  
+  <Step title="Use the date picker">
+    You'll see an interactive date picker that lets you select any year since 2007, month, and day.
+  </Step>
+  
+  <Step title="View historical front pages">
+    Select a date to see what was on the Hacker News front page on that day. The picker defaults to yesterday and prevents selecting future dates.
+  </Step>
+</Steps>
+
+### Enhanced submission experience
+
+Submitting stories is easier with character counting and automatic title fetching.
+
+<Steps>
+  <Step title="Go to submit page">
+    Click "submit" in the HN navigation to create a new story submission.
+  </Step>
+  
+  <Step title="Use the fetch title button">
+    After entering a URL, click the "fetch title" button that appears next to the URL field. Orange Juice will automatically retrieve and populate the title from the URL.
+  </Step>
+  
+  <Step title="Watch the character counter">
+    As you type your title, a character counter appears showing how many characters remain until you reach the 80-character limit.
+  </Step>
+</Steps>
+
+### Profile quick access
+
+Access your profile pages without leaving the current page.
+
+<Steps>
+  <Step title="Click your username">
+    In the top navigation bar, click your username to reveal a dropdown menu.
+  </Step>
+  
+  <Step title="Navigate to profile sections">
+    The dropdown provides quick access to:
+    - Your profile
+    - Submissions
+    - Comments
+    - Hidden items
+    - Upvoted items
+    - Favorites
+  </Step>
+</Steps>
+
+### More hidden links
+
+Access HN URLs that aren't exposed in the regular interface.
+
+<Steps>
+  <Step title="Find the 'more links' dropdown">
+    Look for the "more links" dropdown in the top navigation bar.
+  </Step>
+  
+  <Step title="Explore hidden pages">
+    Click it to see a list of useful HN pages that aren't normally linked in the navigation, such as:
+    - Leaders (karma leaderboard)
+    - Best comments
+    - Active discussions
+    - Classic posts
+  </Step>
+</Steps>
+
+## Customization tips
+
+<CardGroup cols={2}>
+  <Card title="Dark mode" icon="moon">
+    Toggle dark mode on/off from the navigation bar. Your preference is saved automatically.
+  </Card>
+  
+  <Card title="Keyboard shortcuts" icon="keyboard">
+    Press `?` on any page to view all available shortcuts. Practice using them to navigate faster.
+  </Card>
+  
+  <Card title="Hide read stories" icon="eye-slash">
+    Use the checkbox on story pages to filter out content you've already seen.
+  </Card>
+  
+  <Card title="Inline replies" icon="reply">
+    Quote text by selecting it before clicking reply. The textarea auto-resizes as you type.
+  </Card>
+</CardGroup>
+
+## Tips for power users
+
+<Accordion title="Collapse comment threads efficiently">
+  - Click on the indent area (left margin) of any comment to collapse/expand that thread
+  - On thread pages, use the "collapse root" button to collapse all top-level comments at once
+  - Navigate collapsed threads with keyboard shortcuts: `j` and `k` skip collapsed comments
+</Accordion>
+
+<Accordion title="Combine features for maximum efficiency">
+  - Use `j`/`k` to navigate stories, then `c` to open comments
+  - Enable "Hide read stories" and refresh the page throughout the day to see only new content
+  - Hover over usernames in discussions to quickly assess credibility and expertise
+  - Use inline reply with text selection to quote specific points in lengthy comments
+</Accordion>
+
+<Accordion title="Track ongoing discussions">
+  - Favorite stories with active discussions you want to follow
+  - Use unread comment highlighting to catch up on new replies when you return
+  - Visit favorited items from your profile dropdown for quick access
+</Accordion>
+
+## Getting help
+
+<CardGroup cols={2}>
+  <Card title="View shortcuts" icon="circle-question">
+    Press `?` on any HN page to see keyboard shortcuts and tips
+  </Card>
+  
+  <Card title="Report issues" icon="bug" href="https://github.com/OrangeJuiceExtension/OrangeJuice/issues">
+    Found a bug or have a feature request? Open an issue on GitHub
+  </Card>
+  
+  <Card title="Read the README" icon="book" href="https://github.com/OrangeJuiceExtension/OrangeJuice/blob/main/README.md">
+    Detailed feature descriptions and development info
+  </Card>
+  
+  <Card title="Contribute" icon="code" href="https://github.com/OrangeJuiceExtension/OrangeJuice">
+    Orange Juice is open source. Contributions are welcome!
+  </Card>
+</CardGroup>
+
+## What's next?
+
+Now that you're familiar with Orange Juice's core features, explore the extension at your own pace. Most features activate automatically as you browse HN, requiring no configuration.
+
+<Tip>
+  The extension is designed to feel invisible—features should be subtle but natural, visible when useful, and aligned with what most users would expect HN to have in the first place.
+</Tip>
+
+Happy browsing!

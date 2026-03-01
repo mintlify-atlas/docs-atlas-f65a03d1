@@ -1,0 +1,351 @@
+---
+title: Project Architecture
+description: Understand the structure and patterns used in Orange Juice
+---
+
+## Technology Stack
+
+Orange Juice is built with modern web technologies:
+
+- **WXT Framework**: Browser extension framework with hot module reloading
+- **React 19**: UI components and rendering
+- **TypeScript**: Type-safe development
+- **Bun**: Fast JavaScript runtime and package manager
+- **Tailwind CSS**: Utility-first styling
+- **Vitest**: Unit testing framework
+- **Playwright**: End-to-end testing
+
+## Project Structure
+
+The source code is organized into logical directories:
+
+```
+src/
+├── assets/           # Static assets (images, icons)
+├── components/       # Feature components
+│   ├── activities/   # Activity tracking features
+│   ├── comment/      # Comment-related features
+│   ├── common/       # Shared components
+│   ├── footer/       # Footer enhancements
+│   ├── navbar/       # Navigation bar features
+│   ├── past/         # Historical front page features
+│   ├── story/        # Story listing features
+│   ├── submit/       # Submission form enhancements
+│   └── user/         # User profile features
+├── entrypoints/      # Extension entry points
+│   ├── background/   # Background script
+│   ├── popup/        # Extension popup UI
+│   └── router.content/ # Content script router
+├── services/         # Business logic services
+├── utils/            # Shared utilities
+└── e2e/              # End-to-end tests
+```
+
+## WXT Framework
+
+Orange Juice uses [WXT](https://wxt.dev) as its browser extension framework. WXT provides:
+
+- **Hot Module Reloading**: Instant updates during development
+- **Cross-browser Support**: Build for Chrome and Firefox from one codebase
+- **TypeScript Support**: First-class TypeScript integration
+- **Content Script Management**: Simplified content script lifecycle
+
+### Configuration
+
+The WXT configuration is in `wxt.config.ts`:
+
+```typescript wxt.config.ts
+import { defineConfig } from 'wxt';
+
+export default defineConfig({
+  modules: ['@wxt-dev/module-react'],
+  srcDir: 'src',
+  manifest: {
+    name: 'Orange Juice',
+    permissions: ['history', 'storage', 'tabs'],
+    host_permissions: ['https://squeeze.oj-hn.com/*'],
+  },
+});
+```
+
+## Entry Points
+
+### Content Script Router
+
+The main content script is located at `src/entrypoints/router.content/index.ts`. It:
+
+1. Creates client services for cross-extension communication
+2. Detects the current user
+3. Enables dark mode
+4. Routes to appropriate component features based on URL patterns
+
+```typescript
+export default defineContentScript({
+  matches: ['https://news.ycombinator.com/*'],
+  runAt: 'document_end',
+  async main(ctx: ContentScriptContext): Promise<void> {
+    createClientServices();
+    
+    const currentUrl = window.location.href;
+    const username = await dom.getUsername(document.body);
+    
+    await enableDarkMode();
+    
+    await Promise.all([
+      startActivityFetcher(username),
+      ...components.map((component) =>
+        runComponent(component, ctx, currentUrl, username)
+      ),
+    ]);
+  },
+});
+```
+
+### Background Script
+
+Located at `src/entrypoints/background/index.ts`, the background script handles:
+
+- Service initialization for cross-context communication
+- Background tasks and message passing
+
+### Popup
+
+The extension popup UI is a React application located at `src/entrypoints/popup/`.
+
+## Component Architecture
+
+### Component Feature Pattern
+
+Each feature is organized as a component with a standard structure:
+
+```typescript
+export const story: ComponentFeature = {
+  id: 'story',
+  loginRequired: false,
+  matches: [`${paths.base}/*`],
+  runAt: 'document_end',
+  async main(ctx: ContentScriptContext) {
+    // Feature implementation
+  },
+};
+```
+
+The router automatically runs components when their URL patterns match.
+
+### Component Organization
+
+Each component directory contains:
+
+- **index.ts**: Main component feature definition and orchestration
+- **Feature modules**: Individual feature implementations
+- **Test files**: Co-located unit tests (*.test.ts)
+
+Example from `src/components/comment/`:
+
+```
+comment/
+├── index.ts                           # Main component
+├── backticks-to-code.ts              # Feature: Convert backticks
+├── backticks-to-code.test.ts         # Tests
+├── beautiful-mermaid.ts              # Feature: Mermaid diagrams
+├── beautiful-mermaid.test.ts         # Tests
+├── highlight-unread-comments.ts      # Feature: Highlight unread
+├── highlight-unread-comments.test.ts # Tests
+├── inline-reply.ts                   # Feature: Inline replies
+├── keyboard-navigation.ts            # Feature: Keyboard shortcuts
+└── ...
+```
+
+### Comment Component Example
+
+The comment component orchestrates multiple features:
+
+```typescript src/components/comment/index.ts
+export const comments: ComponentFeature = {
+  id: 'comments',
+  loginRequired: true,
+  matches: [`${paths.base}/*`],
+  runAt: 'document_end',
+  main(ctx: ContentScriptContext) {
+    // Initialize comment data structure
+    const commentData = new CommentData(doc);
+    
+    // Apply enhancements
+    initCommentUX(doc, commentData);
+    indentToggle(ctx, doc);
+    inlineReply(ctx, doc, username);
+    highlightUnreadComments(doc, commentData);
+    backticksToCode(doc);
+    commentBeautifulMermaid(ctx, doc);
+    // ...
+  },
+};
+```
+
+## Services Layer
+
+Services provide shared business logic and state management using the `comctx` library for cross-context communication.
+
+### Service Manager
+
+The service manager (`src/services/manager.ts`) centralizes service creation:
+
+```typescript
+const SERVICE_REGISTRY = {
+  Highlight: {
+    namespace: 'oj_highlight_unread',
+    class: HighlightUnreadCommentsService,
+    background: true,
+  },
+  ReadStories: {
+    namespace: 'oj_read_stories',
+    class: ReadStoriesService,
+    background: true,
+  },
+  // ...
+};
+```
+
+### Available Services
+
+- **HighlightUnreadCommentsService**: Tracks and highlights unread comments
+- **ReadStoriesService**: Tracks which stories a user has read
+- **FetchRemoteService**: Handles remote API calls
+- **BrowserTabService**: Manages browser tab interactions
+
+### Using Services
+
+Services are accessed through the client services manager:
+
+```typescript
+import { createClientServices } from '@/services/manager.ts';
+
+const services = createClientServices();
+const highlightService = services.getHighlightService();
+
+// Use service methods
+await highlightService.markAsRead(commentId);
+```
+
+## React Components
+
+React is used for complex UI components that require state management:
+
+### Component Guidelines
+
+- Use **function components** over class components
+- Call hooks at the **top level only**
+- Specify **all dependencies** in hook arrays
+- Use **semantic HTML** for accessibility
+- Add proper **ARIA attributes**
+
+### Example React Component
+
+```typescript
+interface Props {
+  username: string;
+  onClose: () => void;
+}
+
+export const UserInfo: React.FC<Props> = ({ username, onClose }) => {
+  const [userData, setUserData] = useState<User | null>(null);
+  
+  useEffect(() => {
+    fetchUserData(username).then(setUserData);
+  }, [username]);
+  
+  return (
+    <div role="dialog" aria-label="User information">
+      {/* Component content */}
+      <button type="button" onClick={onClose}>
+        Close
+      </button>
+    </div>
+  );
+};
+```
+
+## Storage
+
+Orange Juice uses `@wxt-dev/storage` for persistent storage:
+
+```typescript
+import { storage } from 'wxt/storage';
+
+// Save data
+await storage.setItem('local:feature-enabled', true);
+
+// Retrieve data
+const enabled = await storage.getItem<boolean>('local:feature-enabled');
+```
+
+## DOM Manipulation
+
+The project includes a `dom` utility module for common DOM operations:
+
+```typescript
+import { dom } from '@/utils/dom.ts';
+
+// Get current username
+const username = await dom.getUsername(document.body);
+
+// Ensure readable text
+dom.ensureTopBarReadableText(document);
+```
+
+<Note>
+  Always use a local document reference instead of the global `document` object for better testability and context isolation.
+</Note>
+
+## Type Safety
+
+The project uses TypeScript extensively for type safety:
+
+### Type Patterns
+
+- Use **explicit types** for function parameters and return values
+- Prefer `unknown` over `any` for genuinely unknown types
+- Use **const assertions** for immutable values
+- Leverage **type narrowing** instead of type assertions
+- Extract magic numbers into named constants
+
+### Example
+
+```typescript
+// Good: Explicit types
+function processComment(id: string, doc: Document): HTMLElement | null {
+  return doc.querySelector(`#comment-${id}`);
+}
+
+// Good: Const assertion
+const PATHS = [
+  '/item',
+  '/comment',
+  '/reply',
+] as const;
+
+type Path = typeof PATHS[number];
+```
+
+## Code Style
+
+Key code style guidelines from `AGENTS.md`:
+
+- Prefer **for...of** over forEach
+- Use **arrow functions** for callbacks
+- Use **optional chaining** (`?.`) and **nullish coalescing** (`??`)
+- Use **const** by default, `let` only for reassignment
+- Use **template literals** over string concatenation
+- Extract inline regex to constants
+- Use **async/await** instead of promise chains
+- Always await promises in async functions
+
+<Warning>
+  Check code format with `bun run check` and fix with `bun run fix` before committing.
+</Warning>
+
+## Next Steps
+
+- Learn about [Testing](/development/testing)
+- Review [Contributing Guidelines](/development/contributing)
+- Explore the [Setup Guide](/development/setup)

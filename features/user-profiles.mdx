@@ -1,0 +1,168 @@
+---
+title: User Profile Features
+description: Enhanced user profile viewing and interaction on Hacker News
+---
+
+Orange Juice adds several features to make viewing and interacting with user profiles more convenient and informative.
+
+## User Info on Hover
+
+Hover over any username to see a popup with detailed user information including account creation date, karma, submissions count, and their about section.
+
+### What You See
+
+<Tabs>
+  <Tab title="Basic Info">
+    - **Username**: Highlighted in green if account is less than 1 month old
+    - **Created**: Account creation date (formatted with `Intl.DateTimeFormat()`)
+    - **Karma**: Total karma points
+    - **Submitted**: Number of submissions
+  </Tab>
+  
+  <Tab title="About Section">
+    If the user has an about section, it displays:
+    - Full about text with HTML preserved
+    - Automatically linkified URLs (using `linkify-html`)
+    - Links open in new tabs with `rel="noopener"` for security
+  </Tab>
+  
+  <Tab title="New Users">
+    Users with accounts less than 30 days old are highlighted:
+    ```html
+    <font color="#3c963c">username</font>
+    ```
+    
+    This makes it easy to identify new community members.
+  </Tab>
+</Tabs>
+
+### Popup Behavior
+
+<Accordion title="Smart hover behavior">
+  The popup has sophisticated hover behavior to prevent accidental dismissal:
+  
+  1. **Appears on hover**: Popup appears when you hover over any username link
+  2. **Stays open**: The popup stays open when you move your mouse over it
+  3. **Clickable links**: You can click links in the about section
+  4. **Safe corridor**: A "corridor" between the username and popup keeps it open (`src/components/user/show-user-info-hover.ts:188-202`)
+  5. **Dismisses smoothly**: Popup dismisses when you move outside the corridor
+  
+  The safe corridor logic:
+  ```typescript
+  const PADDING = 10;
+  const corridorLeft = Math.min(triggerRect.left, popoverRect.left) - PADDING;
+  const corridorRight = Math.max(triggerRect.right, popoverRect.right) + PADDING;
+  const corridorTop = triggerRect.top;
+  const corridorBottom = popoverRect.top + PADDING;
+  ```
+</Accordion>
+
+### Caching
+
+User data is cached in memory to reduce API calls:
+
+```typescript
+const cachedData = new Map<string, HTMLDivElement>();
+```
+
+Once fetched, user info is instantly available on subsequent hovers.
+
+### Dark Mode Support
+
+<Note>
+  The popup automatically adapts to dark mode with appropriate colors:
+  - Background: `rgb(44, 42, 31)`
+  - Border: `#e8e6e3`
+  - Text: `var(--oj-muted)`
+</Note>
+
+## Profile Links Dropdown
+
+Click on your username in the top navigation to reveal a dropdown menu with quick access to all your profile pages.
+
+### Available Links
+
+<CardGroup cols={2}>
+  <Card title="Your Content">
+    - Profile
+    - Submissions
+    - Comments
+  </Card>
+  
+  <Card title="Your Activity">
+    - Hidden items
+    - Flagged submissions
+    - Flagged comments
+    - Upvoted submissions
+    - Upvoted comments
+    - Favorite submissions
+    - Favorite comments
+  </Card>
+</CardGroup>
+
+### Implementation Details
+
+The dropdown:
+
+- Replaces the logout link in the navbar (moves it to the dropdown)
+- Shows an arrow indicator: `▾` when closed, `▴` when open
+- Closes when clicking outside or navigating to a link
+- Only appears when you're logged in
+
+```typescript
+// src/components/user/profile-links-dropdown.ts:16-57
+const getLinks = (user: string, logoutPath?: string): DropdownLink[] => {
+  const links: DropdownLink[] = [
+    { title: 'profile', path: `/user?id=${user}` },
+    { title: 'submissions', path: `/submitted?id=${user}` },
+    { title: 'comments', path: `/threads?id=${user}` },
+    // ... more links
+  ];
+  
+  if (logoutPath) {
+    links.push({ title: 'logout', path: logoutPath });
+  }
+  
+  return links;
+};
+```
+
+<Tip>
+  Use the keyboard shortcut `P` (with alt/⌥) to quickly navigate to your profile.
+</Tip>
+
+## Clickable About Links
+
+In user profile about sections, URLs are automatically converted to clickable links.
+
+### Features
+
+- Uses `linkify-html` library for reliable URL detection
+- Converts plain text URLs to `<a>` tags
+- Adds `rel="noopener"` for security
+- Works in profile pages and hover popups
+
+### Security
+
+<Warning>
+  All URLs open with `rel="noopener"` to prevent the new page from accessing the `window.opener` object, protecting against potential security vulnerabilities.
+</Warning>
+
+## Top Leaders Karma
+
+On the `/leaders` page, Orange Juice displays karma for the top 10 users, making it easier to see the community's most active contributors.
+
+### Example
+
+The leaders page normally just shows usernames. Orange Juice enhances it to show:
+
+```
+1. username (12345 karma)
+2. username (11234 karma)
+3. username (10123 karma)
+...
+```
+
+<Note>
+  This feature is implemented in `src/components/user/top-leaders-karma.ts` and only activates on the `/leaders` page.
+</Note>

@@ -1,0 +1,391 @@
+---
+title: Contributing Guidelines
+description: Learn how to contribute to Orange Juice
+---
+
+Thanks for contributing to Orange Juice! We welcome contributions from developers of all skill levels.
+
+## Culture and Values
+
+Our community follows these principles:
+
+- **Be friendly and understanding**: Treat others with respect
+- **Be helpful and supportive**: Help others learn and grow
+- **No judgment**: Everyone was a beginner once
+- **Treat people the way you want to be treated**: Golden rule applies
+- **No stupid questions**: Ask anything you need to know
+
+## AI Contributions
+
+AI-assisted and AI-generated contributions are welcome and encouraged.
+
+### Requirements for AI Contributions
+
+<Steps>
+  <Step title="Human Review Required">
+    Every code change must be reviewed and approved by a human. Don't blindly accept AI-generated code.
+  </Step>
+
+  <Step title="Comprehensive Tests">
+    Unit tests must be thorough and cover edge cases. AI can help write them, but tests still require human review.
+  </Step>
+
+  <Step title="Code Quality">
+    Code must be clean, well-structured, and maintainable. Follow the [code style guidelines](#code-style-guidelines).
+  </Step>
+
+  <Step title="Documentation Updates">
+    Update documentation with meaningful changes:
+    - Update `README.md` when project behavior, setup, or usage changes
+    - Update website/docs when user-facing functionality changes
+  </Step>
+</Steps>
+
+## Before Opening a Pull Request
+
+Ensure your PR meets all these requirements:
+
+### Code Quality Checklist
+
+- [ ] Tests and code linting checks pass
+- [ ] A human has reviewed all changes
+- [ ] Tests are comprehensive and reviewed
+- [ ] Documentation is updated (`README.md` and relevant docs)
+- [ ] Commit titles match the required format
+- [ ] All commits are signed
+
+### Run Quality Checks
+
+```bash
+# Check code format
+bun run check
+
+# Fix formatting issues
+bun run fix
+
+# Run tests
+bun run test
+
+# Type check
+bun run compile
+```
+
+## Commit Title Format
+
+Commit titles must follow conventional commit format for automated releases.
+
+### Format
+
+```
+<type>(<scope>)?: <summary>
+```
+
+### Examples
+
+<CodeGroup>
+```bash Feature
+feat: add keyboard shortcut for reply
+```
+
+```bash Bug Fix
+fix(comment): handle empty thread root
+```
+
+```bash Documentation
+docs: update installation section
+```
+
+```bash Refactor
+refactor(story): simplify selection state
+```
+</CodeGroup>
+
+### Supported Types
+
+- `feat` or `feature`: New feature (bumps minor version)
+- `fix`: Bug fix (bumps patch version)
+- `chore`: Maintenance task
+- `docs`: Documentation changes
+- `style`: Code style changes
+- `refactor`: Code refactoring
+- `perf`: Performance improvements
+- `test`: Test additions or changes
+
+### Breaking Changes
+
+For breaking changes, use one of these formats:
+
+<CodeGroup>
+```bash With Exclamation
+feat!: redesign comment threading
+```
+
+```bash With Scope
+feat(api)!: change service interface
+```
+
+```bash In Body
+feat: update storage format
+
+BREAKING CHANGE: storage format is incompatible with previous versions
+```
+</CodeGroup>
+
+<Note>
+  Breaking changes bump the major version number.
+</Note>
+
+## Signed Commits
+
+All commits must be GPG signed.
+
+### Setup Commit Signing
+
+<Steps>
+  <Step title="Generate GPG Key">
+    Follow [GitHub's guide](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key) to generate a GPG key.
+  </Step>
+
+  <Step title="Add Key to GitHub">
+    Add your GPG key to your [GitHub account settings](https://github.com/settings/keys).
+  </Step>
+
+  <Step title="Configure Git">
+    Tell Git to use your signing key:
+
+    ```bash
+    git config --global user.signingkey YOUR_KEY_ID
+    git config --global commit.gpgsign true
+    ```
+  </Step>
+
+  <Step title="Test Signing">
+    Make a signed commit:
+
+    ```bash
+    git commit -S -m "test: verify commit signing"
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+  PRs with unsigned commits will not be merged.
+</Warning>
+
+## Code Style Guidelines
+
+Follow these guidelines from `AGENTS.md`:
+
+### General Principles
+
+- Write code that is **accessible, performant, type-safe, and maintainable**
+- Focus on **clarity and explicit intent** over brevity
+- **Reduce duplication** and unnecessary complexity
+- **Extract constants** instead of using magic numbers
+- Use **meaningful variable names**
+
+### TypeScript
+
+- Use **explicit types** for function parameters and return values
+- Prefer `unknown` over `any`
+- Use **const assertions** for immutable values: `as const`
+- Leverage **type narrowing** instead of type assertions
+
+```typescript
+// Good: Explicit types
+function processComment(id: string, doc: Document): HTMLElement | null {
+  return doc.querySelector(`#comment-${id}`);
+}
+
+// Good: Const assertion
+const PATHS = ['/item', '/comment'] as const;
+```
+
+### JavaScript Patterns
+
+- Prefer **for...of** over forEach
+- Use **arrow functions** for callbacks
+- Use **const** by default, `let` only for reassignment, never `var`
+- Use **template literals** over string concatenation
+- Use **optional chaining** (`?.`) and **nullish coalescing** (`??`)
+- Use **Number.parseInt**, not parseInt
+
+```typescript
+// Good: for...of
+for (const item of items) {
+  processItem(item);
+}
+
+// Good: Optional chaining
+const username = user?.profile?.name ?? 'Anonymous';
+```
+
+### Async/Await
+
+- Use **async/await** instead of promise chains
+- Always **await promises** in async functions
+- Handle errors with **try-catch** blocks
+- Don't use async functions as Promise executors
+
+```typescript
+// Good: async/await
+async function loadData(): Promise<Data> {
+  try {
+    const response = await fetch('/api/data');
+    return await response.json();
+  } catch (error) {
+    throw new Error(`Failed to load data: ${error}`);
+  }
+}
+```
+
+### React
+
+- Use **function components** over class components
+- Call hooks **at the top level only**, never conditionally
+- Specify **all dependencies** in hook dependency arrays
+- Use **semantic HTML** and ARIA attributes
+- Add proper **keyboard event handlers**
+- Don't define components inside other components
+
+```typescript
+// Good: Function component with proper hooks
+export const UserCard: React.FC<Props> = ({ userId }) => {
+  const [user, setUser] = useState<User | null>(null);
+  
+  useEffect(() => {
+    loadUser(userId).then(setUser);
+  }, [userId]);
+  
+  return (
+    <article role="article" aria-label="User information">
+      {user && <h2>{user.name}</h2>}
+    </article>
+  );
+};
+```
+
+### HTML Generation
+
+- Always generate **valid HTML**
+- Use proper nesting for table elements
+
+```typescript
+// Invalid
+const bad = '<div><td>Content</td></div>';
+
+// Valid
+const good = '<div><table><tbody><tr><td>Content</td></tr></tbody></table></div>';
+```
+
+### Security
+
+- Add `rel="noopener"` when using `target="_blank"`
+- Avoid `dangerouslySetInnerHTML` unless absolutely necessary
+- Don't use `eval()` or assign directly to `document.cookie`
+- Validate and sanitize user input
+
+### Performance
+
+- Avoid spread syntax in accumulators within loops
+- Use **top-level regex literals** instead of creating them in loops
+- Prefer **specific imports** over namespace imports
+- Avoid barrel files (index files that re-export everything)
+
+```typescript
+// Good: Top-level regex
+const URL_PATTERN = /https?:\/\/[^\s]+/g;
+
+function extractUrls(text: string): string[] {
+  return text.match(URL_PATTERN) || [];
+}
+```
+
+## Testing Requirements
+
+All code contributions must include tests. See the [Testing Guide](/development/testing) for details.
+
+### Test Guidelines from AGENTS.md
+
+- Wrap tests in top-level `describe()`
+- Use **Go-style table-driven tests** for multiple cases
+- Be thorough and check for **edge cases**
+- Write a **failing test first** if code is broken, then fix it
+- Never write a passing test for broken code
+
+```typescript
+describe('featureName', () => {
+  const testCases = [
+    { input: 'test1', expected: 'result1' },
+    { input: 'test2', expected: 'result2' },
+  ];
+
+  for (const { input, expected } of testCases) {
+    test(`processes ${input}`, () => {
+      expect(process(input)).toBe(expected);
+    });
+  }
+});
+```
+
+## Issue and PR Flow
+
+Our workflow is designed to be fast and efficient:
+
+- **Non-issues** found in Issues will be moved to Discussions
+- Issues are kept **minimal and feature-oriented**
+- **Bugs get priority** over features
+- We aim to **review and accept PRs quickly**
+- We **release early and release often**
+
+### Opening an Issue
+
+1. Check if the issue already exists
+2. Use a clear, descriptive title
+3. Provide steps to reproduce (for bugs)
+4. Include screenshots if relevant
+5. Mention your browser and OS
+
+### Opening a Pull Request
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feat/my-feature`
+3. Make your changes
+4. Write tests
+5. Run quality checks: `bun run check && bun run test`
+6. Commit with proper format and signing
+7. Push and open a PR
+
+## Environment Notes
+
+- **Package manager**: Bun only (never npm, pnpm, or yarn)
+- **Reference DOM**: https://news.hackernews.com
+- **Format check**: `bun run check`
+- **Format fix**: `bun run fix`
+- **Tests**: `bun run test`
+
+<Warning>
+  Always use Bun as the package manager. Using other package managers may cause issues.
+</Warning>
+
+## Getting Help
+
+If you need help:
+
+- Open a [Discussion](https://github.com/OrangeJuiceExtension/OrangeJuice/discussions)
+- Ask in an existing issue
+- Email: hello@oj-hn.com
+
+Remember: **No question is stupid**. We're here to help!
+
+## Resources
+
+- [Development Setup](/development/setup)
+- [Project Architecture](/development/architecture)
+- [Testing Guide](/development/testing)
+- [GitHub Repository](https://github.com/OrangeJuiceExtension/OrangeJuice)
+- [Commit Signing Guide](https://docs.github.com/en/authentication/managing-commit-signature-verification)
+
+---
+
+Thank you for contributing to Orange Juice! We look forward to your contributions.

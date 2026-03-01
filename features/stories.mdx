@@ -1,0 +1,117 @@
+---
+title: Story Features
+description: Better story management and interaction on Hacker News
+---
+
+Orange Juice enhances how you interact with stories on Hacker News, making it easier to manage what you've read and save items for later.
+
+## Hide Read Stories
+
+A checkbox at the top of story pages allows you to hide stories you've already visited, keeping your front page fresh and focused on new content.
+
+### How It Works
+
+<Steps>
+  <Step title="Checkbox appears at top">
+    The "Hide read stories" checkbox is inserted before the story list (`src/components/story/hide-read-stories.ts:67`).
+  </Step>
+  
+  <Step title="Uses browser history">
+    Orange Juice uses the browser's history API to determine if a link has been visited before. No server requests needed.
+  </Step>
+  
+  <Step title="State persists">
+    Your checkbox preference is saved to local storage under the key `oj_hide_read_stories`, so it persists across sessions.
+  </Step>
+  
+  <Step title="Updates on pageshow">
+    When you use the back button, the page automatically updates to reflect newly visited stories.
+  </Step>
+</Steps>
+
+### Implementation Details
+
+<Accordion title="How stories are hidden">
+  Stories are hidden by setting their display style:
+  
+  ```typescript
+  // src/components/story/hide-read-stories.ts:38-41
+  if (display === 'none') {
+    story.hide();
+  } else {
+    story.show();
+  }
+  ```
+  
+  The checkbox state is stored as:
+  ```typescript
+  interface StorageState {
+    checkbox: boolean;
+  }
+  ```
+</Accordion>
+
+<Tip>
+  Use the keyboard shortcut `h` to toggle the hide read stories checkbox, or `H` to hide read stories directly without toggling the checkbox.
+</Tip>
+
+## Favorite Items
+
+Add a "favorite" button to both comments and stories across various pages of HN, allowing you to save items for later reference. The button updates in place without redirecting you to a new page.
+
+### Features
+
+- **Toggle in place**: Click the favorite button to add/remove favorites without page navigation
+- **Auth token handling**: Automatically fetches and caches authentication tokens (`src/components/common/activity-buttons.ts:149-150`)
+- **30-day expiry**: Favorite data is stored with a 30-day expiration
+- **Smart placement**: Appears in story sublines and comment headers
+
+### Button States
+
+<Tabs>
+  <Tab title="Inactive">
+    Shows the inactive label (e.g., "favorite") when the item is not favorited.
+  </Tab>
+  
+  <Tab title="Active">
+    Shows the active label (e.g., "un-favorite") when the item is already in your favorites.
+  </Tab>
+  
+  <Tab title="Loading">
+    Button is disabled during the API request to prevent double-clicks.
+  </Tab>
+</Tabs>
+
+### Activity Trail Storage
+
+Favorites are tracked using the Activity Trail system:
+
+```typescript
+{
+  id: commentId,
+  type: ActivityId.FavoriteSubmissions, // or FavoriteComments
+  auth: authToken,
+  exp: Date.now() + DAYS_30
+}
+```
+
+<Note>
+  The favorite button system also supports flags and votes using the same infrastructure, ensuring consistent behavior across all activity types.
+</Note>
+
+## Story Navigation
+
+Keyboard shortcuts make navigating stories efficient:
+
+- `↑ / ↓` or `j / k` - Move up/down through stories
+- `→` - Open story URL in new tab
+- `⇧ + →` - Open story URL in current tab
+- `←` - Open story comments in new tab
+- `⇧ + ←` - Open story comments in current tab
+- `Enter` - Open selected story in new tab
+- `O` - Open both story and comments in new tabs
+- `1-9, 0` - Jump directly to story at position 1-10
+- `m` - Click the "More" link for pagination
+- `esc` - Unfocus current story
+
+See the [Navigation](/features/navigation) page for more keyboard shortcuts.
